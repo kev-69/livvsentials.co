@@ -1,0 +1,128 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DB_URL")
+}
+
+model User {
+    id          String  @id @default(uuid())
+    email       String  @unique
+    password    String
+    firstName   String
+    lastName    String
+    role        UserRole
+    orders      Order[]
+    carts       Cart[]
+    addresses   UserAddress[]
+    createdAt   DateTime    @default(now())
+    updatedAt   DateTime    @updatedAt
+}
+
+enum UserRole {
+    USER
+    ADMIN
+}
+
+model UserAddress {
+    id              String  @id @default(uuid())
+    streetName      String
+    postalCode      String
+    region          String
+    userId          String
+    user            User    @relation(fields: [userId], references: [id])
+    createdAt       DateTime    @default(now())
+    updatedAt       DateTime    @updatedAt
+}
+
+model Category {
+    id             String  @id @default(uuid())
+    name           String
+    description    String
+    products       Product[]
+    createdAt      DateTime @default(now())
+    updatedAt      DateTime @updatedAt
+}
+
+model Product {
+    id              String  @id @default(uuid())
+    name            String
+    price           Float
+    description     String
+    stockQuantity   Int
+    inStock         Boolean
+    productImages   String[]
+    categoryId      String
+    category        Category    @relation(fields: [categoryId], references: [id])
+    carts           Cart[]
+    orders          Order[]
+    orderItems      OrderItem[]
+    createdAt       DateTime    @default(now())
+    updatedAt       DateTime    @updatedAt
+}
+
+model Cart {
+    id          String  @id  @default(uuid())
+    userId      String
+    user        User    @relation(fields: [userId], references: [id])
+    productId   String
+    product     Product @relation(fields: [productId], references: [id])
+    quantity    Int
+    createdAt   DateTime    @default(now())
+    updatedAt   DateTime    @updatedAt
+}
+
+model Order {
+    id              String  @id @default(uuid())
+    userId          String
+    user            User    @relation(fields: [userId], references: [id])
+    totalAmount     Float
+    orderStatus     OrderStatus
+    products        Product[]
+    orderItems      OrderItem[]
+    payments        Payment[]
+    createdAt       DateTime    @default(now())
+    updatedAt       DateTime    @updatedAt
+}
+
+enum OrderStatus {
+    PROCESSING
+    SHIPPED
+    DELIVERED
+    CANCELLED
+}
+
+model OrderItem {
+    id          String  @id @default(uuid())
+    orderId     String
+    order       Order   @relation(fields: [orderId], references: [id])
+    productId   String
+    product     Product @relation(fields: [productId], references: [id])
+    quantity    Int
+    price       Float
+}
+
+model Payment {
+    id              String  @id @default(uuid())
+    orderId         String
+    order           Order   @relation(fields: [orderId], references: [id])
+    amount          Float
+    paymentMethod   PaymentMethod
+    paymentStatus   PaymentStatus
+    createdAt       DateTime    @default(now())
+    updatedAt       DateTime    @updatedAt
+}
+
+enum PaymentMethod {
+    MOBILE_MONEY
+    CREDIT_CARD
+}
+
+enum PaymentStatus {
+    PROCESSING
+    COMPLETED
+    CANCELLED
+    REFUNDED
+}
