@@ -7,18 +7,24 @@ datasource db {
     url      = env("DB_URL")
 }
 
+// ======== USER-RELATED MODELS ========
 model User {
-    id          String  @id @default(uuid())
-    email       String  @unique
-    password    String
-    firstName   String
-    lastName    String
-    role        UserRole
-    orders      Order[]
-    carts       Cart[]
-    addresses   UserAddress[]
+    id                      String  @id @default(uuid())
+    email                   String  @unique
+    password                String
+    firstName               String
+    lastName                String
+    role                    UserRole    @default(USER)
+    phone                   String
+    orders                  Order[]
+    carts                   Cart[]
+    wishlists               Wishlist[]
+    addresses               UserAddress[]
+    verificationTokens      VerificationToken[]
     createdAt   DateTime    @default(now())
     updatedAt   DateTime    @updatedAt
+
+    @@index(email)
 }
 
 enum UserRole {
@@ -29,62 +35,133 @@ enum UserRole {
 model UserAddress {
     id              String  @id @default(uuid())
     streetName      String
+    city            String
     postalCode      String
     region          String
     userId          String
     user            User    @relation(fields: [userId], references: [id])
     createdAt       DateTime    @default(now())
     updatedAt       DateTime    @updatedAt
+
+    @@index([userId])
 }
 
+model VerificationToken {
+    id        String   @id @default(uuid())
+    token     String   @unique
+    userId    String
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    expiresAt DateTime
+    createdAt DateTime @default(now())
+    
+    @@index([token])
+    @@index([userId])
+}
+
+model PasswordReset {
+    id        String   @id @default(uuid())
+    email     String   @unique
+    code      String
+    expiresAt DateTime
+    used      Boolean  @default(false)
+    createdAt DateTime @default(now())
+    
+    @@index([email])
+}
+
+// ======== PRODUCT-RELATED MODELS ========
 model Category {
     id             String  @id @default(uuid())
-    name           String
+    name           String  @unique
+    slug           String  @unique
     description    String
     products       Product[]
     createdAt      DateTime @default(now())
     updatedAt      DateTime @updatedAt
+
+    @@index([slug])
 }
 
 model Product {
     id              String  @id @default(uuid())
     name            String
-    price           Float
+    slug            String  @unique
+    price           Float   @default(0.00)
+    salePrice       Float?
     description     String
-    stockQuantity   Int
-    inStock         Boolean
+    stockQuantity   Int     @default(0)
+    inStock         Boolean     @default(true)
     productImages   String[]
     categoryId      String
     category        Category    @relation(fields: [categoryId], references: [id])
-    carts           Cart[]
     orders          Order[]
     orderItems      OrderItem[]
+    cartItems       CartItem[]
+    wishlistItems   Wishlist[]
     createdAt       DateTime    @default(now())
     updatedAt       DateTime    @updatedAt
+
+    @@index([categoryId])
+    @@index([slug])
 }
 
+// ======== SHOPPING-RELATED MODELS ========
 model Cart {
     id          String  @id  @default(uuid())
     userId      String
-    user        User    @relation(fields: [userId], references: [id])
-    productId   String
-    product     Product @relation(fields: [productId], references: [id])
-    quantity    Int
+    user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+    cartItems   CartItem[]
     createdAt   DateTime    @default(now())
     updatedAt   DateTime    @updatedAt
+
+    @@index([userId])
 }
 
+model CartItem {
+    id          String  @id  @default(uuid())
+    cartId      String
+    productId   String
+    quantity    Int @default(1)
+    cart        Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+    product     Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+    createdAt   DateTime    @default(now())
+    updatedAt   DateTime    @updatedAt
+
+    @@unique([cartId, productId])
+    @@index([productId])
+}
+
+model Wishlist {
+    id          String  @id @default(uuid())
+    userId      String
+    productId   String
+    user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+    product     Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+    createdAt   DateTime    @default(now())
+    
+    @@unique([userId, productId])
+    @@index([productId])
+    @@index([userId])
+}
+
+// ======== ORDER-RELATED MODELS ========
 model Order {
     id              String  @id @default(uuid())
+    orderNumber     String  @unique
     userId          String
-    user            User    @relation(fields: [userId], references: [id])
+    user            User    @relation(fields: [userId], references: [id], onDelete: Restrict)
     totalAmount     Float
-    orderStatus     OrderStatus
+    orderStatus     OrderStatus @default(PROCESSING)
+    shippingAddress String?
     products        Product[]
     orderItems      OrderItem[]
     payments        Payment[]
     createdAt       DateTime    @default(now())
     updatedAt       DateTime    @updatedAt
+
+    @@index([userId])
+    @@index([orderNumber])
+    @@index([orderStatus])
 }
 
 enum OrderStatus {
@@ -97,22 +174,31 @@ enum OrderStatus {
 model OrderItem {
     id          String  @id @default(uuid())
     orderId     String
-    order       Order   @relation(fields: [orderId], references: [id])
+    order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
     productId   String
-    product     Product @relation(fields: [productId], references: [id])
-    quantity    Int
+    product     Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+    quantity    Int     @default(1)
     price       Float
+    createdAt   DateTime    @default(now())
+    updatedAt   DateTime    @updatedAt
+
+    @@index([orderId, productId])
+    @@index([productId])
 }
 
 model Payment {
     id              String  @id @default(uuid())
     orderId         String
-    order           Order   @relation(fields: [orderId], references: [id])
+    order           Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
     amount          Float
+    transactionId   String? @unique
     paymentMethod   PaymentMethod
-    paymentStatus   PaymentStatus
+    paymentStatus   PaymentStatus   @default(PROCESSING)
     createdAt       DateTime    @default(now())
     updatedAt       DateTime    @updatedAt
+
+    @@index([orderId])
+    @@index([paymentStatus])
 }
 
 enum PaymentMethod {
