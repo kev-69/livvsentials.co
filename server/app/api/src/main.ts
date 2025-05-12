@@ -3,6 +3,7 @@ import cors from 'cors'
 import morgan from 'morgan'
 import dotenv from 'dotenv'
 dotenv.config()
+import { userRoutes } from './routes/user.routes'
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -13,7 +14,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use(morgan('dev'))
 
 // routes
-app.use('/api/v1')
+app.use('/api/v1', userRoutes)
 
 // start server
 app.listen(PORT, () => {
