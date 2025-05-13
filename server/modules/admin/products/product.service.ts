@@ -15,6 +15,14 @@ export const productService = {
         files: Express.Multer.File[];
     }) => {
         try{
+            // check if category exists
+            const category = await prisma.category.findUnique({
+                where: { id: productData.categoryId },
+            });
+            if (!category) {
+                throw new Error(`Category with ID ${productData.categoryId} does not exist`);
+            }
+
             // upload images to cloudinary
             const imageUrls = await Promise.all(
                 productData.files.map(async (file) => uploadImage(file.path))
@@ -74,8 +82,53 @@ export const productService = {
         stockQuantity?: number;
         categoryId?: string;
         productImages?: string[];
+        files?: Express.Multer.File[];
+        existingImages?: string[];
     }) => {
         try {
+            // check if product exists
+            const existingProduct = await prisma.product.findUnique({
+                where: { id: productId },
+            });
+            if (!existingProduct) {
+                throw new Error(`Product with ID ${productId} does not exist`);
+            }
+            // check if category is being updated
+            if (productData.categoryId) {
+                const categoryExists = await prisma.category.findUnique({
+                    where: { id: productData.categoryId },
+                });
+                if (!categoryExists) {
+                    throw new Error(`Category with ID ${productData.categoryId} does not exist`);
+                }
+            }
+            // handle slug update
+            let updatedSlug;
+            if (productData.name) {
+                updatedSlug = productData.name.toLowerCase().replace(/\s+/g, '-');
+            } else {
+                updatedSlug = existingProduct.slug;
+            }
+            // handle image upload
+            let imageUrls: string[] = [];
+            if (productData.files && productData.files.length > 0) {
+                imageUrls = await Promise.all(
+                    productData.files.map(async (file) => uploadImage(file.path))
+                );
+            }
+
+            // Combine existing and new images if both are provided
+            let finalImages = existingProduct.productImages;
+            if (productData.existingImages && productData.existingImages.length > 0) {
+                // If we're explicitly passing existing images, use only those as the base
+                finalImages = productData.existingImages;
+            }
+            
+            if (imageUrls.length > 0) {
+                // Add new images to the existing ones
+                finalImages = [...finalImages, ...imageUrls];
+            }
+
             const product = await prisma.product.update({
                 where: { id: productId },
                 data: {
@@ -86,7 +139,8 @@ export const productService = {
                     inStock: productData.inStock,
                     stockQuantity: productData.stockQuantity,
                     categoryId: productData.categoryId,
-                    productImages: productData.productImages
+                    productImages: finalImages,
+                    slug: updatedSlug,
                 },
             });
             return product;
