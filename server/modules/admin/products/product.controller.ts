@@ -2,17 +2,27 @@ import { Request, Response } from "express";
 import { productService } from "./product.service";
 import { AppError } from "../../../utils/errors";
 import { successResponse, errorResponse } from "../../../utils/response";
+import { addProductFormSchema, updateProductFormSchema } from "./product.schema";
 
 export const productController = {
     addProduct: async (req: Request, res: Response) => {
         try {
-            const productData = req.body;
+            // Validate form data first
+            const formData = addProductFormSchema.parse(req.body);
             const files = req.files as Express.Multer.File[];
-            const product = await productService.addProduct({ ...productData, files });
             
-            res.status(201).json(
-                successResponse('Product created successfully', product)
-            );
+            if (!files || files.length === 0) {
+                res.status(400).json(errorResponse("At least one product image is required"));
+                return;
+            }
+            
+            const product = await productService.addProduct({
+                ...formData,
+                files,
+                productImages: [] // Add empty array for productImages, will be populated in the service
+            });
+            
+            res.status(201).json(successResponse('Product created successfully', product));
         } catch (error) {
             if (error instanceof AppError) {
                 res.status(error.statusCode).json(errorResponse(error.message));
@@ -42,13 +52,16 @@ export const productController = {
     updateProduct: async (req: Request, res: Response) => {
         try {
             const productId = req.params.productId;
-            const productData = req.body;
-            const files = req.files as Express.Multer.File[];
-            const product = await productService.updateProduct(productId, { ...productData, files });
+            // Validate form data first
+            const formData = updateProductFormSchema.parse(req.body);
+            const files = req.files as Express.Multer.File[] || [];
             
-            res.status(200).json(
-                successResponse('Product updated successfully', product)
-            );
+            const product = await productService.updateProduct(productId, {
+                ...formData,
+                files
+            });
+            
+            res.status(200).json(successResponse('Product updated successfully', product));
         } catch (error) {
             if (error instanceof AppError) {
                 res.status(error.statusCode).json(errorResponse(error.message));
