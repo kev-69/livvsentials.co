@@ -8,62 +8,77 @@ export const orderController = {
     getOrders: async (req: Request, res: Response) => {
         try {
             const orders = await orderServices.getOrders();
-        res.status(200).json(successResponse("Orders retrieved successfully", orders));
+            res.status(200).json(successResponse("Orders retrieved successfully", orders));
         } catch (error) {
-            if (error instanceof AppError) {
-                res.status(error.statusCode).json(errorResponse(error.message));
-            } else if (error instanceof Error) {
-                res.status(400).json(errorResponse(error.message));
-            } else {
-                res.status(400).json({ message: 'An unknown error occurred' });
-            }
+            handleControllerError(error, res);
         }
     },
 
-    updateOrderStatus: async (req: Request, res: Response) => {
+    getOrderById: async (req: Request, res: Response) => {
         try {
-            const orderId = req.params.orderId;
-            const { orderStatus } = req.body;
-
-            // Validate that orderStatus is a valid enum value
-            if (!Object.values(OrderStatus).includes(orderStatus)) {
-                res.status(400).json(errorResponse("Invalid order status"));
-                return;
-            }
-
-            const updatedOrder = await orderServices.updateOrderStatus(orderId, orderStatus as OrderStatus);
-            res.status(200).json(successResponse("Order status updated successfully", updatedOrder));
+            const { orderId } = req.params;
+            const order = await orderServices.getOrderById(orderId);
+            res.status(200).json(successResponse("Order retrieved successfully", order));
         } catch (error) {
-            if (error instanceof AppError) {
-                res.status(error.statusCode).json(errorResponse(error.message));
-            } else if (error instanceof Error) {
-                res.status(400).json(errorResponse(error.message));
-            } else {
-                res.status(400).json({ message: 'An unknown error occurred' });
-            }
+            handleControllerError(error, res);
         }
     },
 
-    getOrderStatistics: async (req: Request, res: Response) => {
+    shipOrder: async (req: Request, res: Response) => {
         try {
-            const stats = await orderServices.getOrderStatistics();
-            
-            // Format the results to make them more frontend-friendly
-            const formattedStats = {
-                daily: stats.dailySales._sum.totalAmount || 0,
-                weekly: stats.weeklySales._sum.totalAmount || 0,
-                monthly: stats.monthlySales._sum.totalAmount || 0
-            };
-            
-            res.status(200).json(successResponse("Order statistics retrieved successfully", formattedStats));
+            const { orderId } = req.params;
+            const updatedOrder = await orderServices.shipOrder(orderId);
+            res.status(200).json(successResponse("Order marked as shipped", updatedOrder));
         } catch (error) {
-            if (error instanceof AppError) {
-                res.status(error.statusCode).json(errorResponse(error.message));
-            } else if (error instanceof Error) {
-                res.status(400).json(errorResponse(error.message));
-            } else {
-                res.status(400).json({ message: 'An unknown error occurred' });
-            }
+            handleControllerError(error, res);
         }
-    }
+    },
+
+    cancelOrder: async (req: Request, res: Response) => {
+        try {
+            const { orderId } = req.params;
+            const updatedOrder = await orderServices.cancelOrder(orderId);
+            res.status(200).json(successResponse("Order cancelled successfully", updatedOrder));
+        } catch (error) {
+            handleControllerError(error, res);
+        }
+    },
+
+    deliverOrder: async (req: Request, res: Response) => {
+        try {
+            const { orderId } = req.params;
+            const updatedOrder = await orderServices.deliverOrder(orderId);
+            res.status(200).json(successResponse("Order marked as delivered", updatedOrder));
+        } catch (error) {
+            handleControllerError(error, res);
+        }
+    },
+
+    // updateOrderStatus: async (req: Request, res: Response) => {
+    //     try {
+    //         const { orderId } = req.params;
+    //         const { orderStatus } = req.body;
+
+    //         // Validate that orderStatus is a valid enum value
+    //         if (!Object.values(OrderStatus).includes(orderStatus)) {
+    //             return res.status(400).json(errorResponse("Invalid order status"));
+    //         }
+
+    //         const updatedOrder = await orderServices.updateOrderStatus(orderId, orderStatus);
+    //         res.status(200).json(successResponse(`Order status updated to ${orderStatus}`, updatedOrder));
+    //     } catch (error) {
+    //         handleControllerError(error, res);
+    //     }
+    // },
 };
+
+// Helper function for consistent error handling
+function handleControllerError(error: unknown, res: Response) {
+    if (error instanceof AppError) {
+        return res.status(error.statusCode).json(errorResponse(error.message));
+    } else if (error instanceof Error) {
+        return res.status(400).json(errorResponse(error.message));
+    } else {
+        return res.status(500).json(errorResponse("An unexpected error occurred"));
+    }
+}
