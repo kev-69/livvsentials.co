@@ -170,15 +170,18 @@ router.get('/orders',
 router.get('/orders/:orderId',
     validateToken,
     isAdmin,
+    validateRequest({
+        params: z.object({ orderId: z.string().uuid() }),
+    }),
     orderController.getOrderById
-)
+);
 
 /**
  * @route POST /api/admin/orders/:orderId
  * @desc Update order status to shipped using ID
  * @access Admin only
 */
-router.post('/orders/:orderId',
+router.post('/orders/:orderId/ship',
     validateToken,
     isAdmin,
     orderController.shipOrder
@@ -189,7 +192,7 @@ router.post('/orders/:orderId',
  * @desc Update order status to cancelled using ID
  * @access Admin only
 */
-router.post('orders/orderId',
+router.post('orders/orderId/cancel',
     validateToken,
     isAdmin,
     orderController.cancelOrder
@@ -200,7 +203,7 @@ router.post('orders/orderId',
  * @desc Update order status to delivered using ID
  * @access Admin only
 */
-router.post('/orders/orderId',
+router.post('/orders/orderId/deliver',
     validateToken,
     isAdmin,
     orderController.deliverOrder
