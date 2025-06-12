@@ -4,7 +4,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -28,18 +27,18 @@ export const Login = () => {
         }
 
         try {
-            await loginAdmin(
-                email,
-                password
-            )
-            // a toast notification or something
+            console.log('Logging in with:', { email, password });
+            const response = await loginAdmin(email, password)
+            console.log('Login response:', response);
             toast.success('Login successfull')
-            // <Toaster />
-
-            // navigate to dashboard if success
             navigate('/dashboard')
         } catch (error) {
-            // toast if login fails
+            console.error('Login error:', error);
+            if (error instanceof Error) {
+                toast.error(error.message || 'Login failed')
+            } else {
+                toast.error('An unknown error occurred')
+            }
         }
     }
 
@@ -84,17 +83,17 @@ export const Login = () => {
                 />
                 </div>
             </div>
+            <div className="mt-6">
+                <Button 
+                    type="submit" 
+                    className="w-full"
+                    disabled={isLoading}
+                >
+                    {isLoading ? 'Logging in...' : 'Login'}
+                </Button>
+            </div>
         </form>
         </CardContent>
-        <CardFooter className="flex-col gap-2">
-            <Button 
-                type="submit" 
-                className="w-full"
-                disabled={isLoading}
-            >
-                {isLoading ? '...' : 'Login'}
-            </Button>
-        </CardFooter>
         </Card>
     )
 }
