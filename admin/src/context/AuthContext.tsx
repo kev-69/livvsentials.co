@@ -11,7 +11,7 @@ interface Admin {
 }
 
 interface AuthContextType {
-    Admin: Admin | null;
+    admin: Admin | null;
     isLoading: boolean;
     error: string | null;
     logout: () => void;
@@ -35,10 +35,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 try {
                     setIsLoading(true)
                     // make request to dashbaord
-                    const response = await apiClient.get('/profile');
+                    const response = await apiClient.get('/admin/profile');
                     setAdmin(response.data.data)
+                    setIsAuthenticated(true)
                 } catch (error) {
-                    localStorage.removeItem(token)
+                    localStorage.removeItem('adminToken')
                     setIsAuthenticated(false)
                     setAdmin(null)
                 } finally {
@@ -59,7 +60,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     return (
         <AuthContext.Provider value={{
-            Admin: admin,
+            admin: admin,
             isLoading,
             error,
             logout,
