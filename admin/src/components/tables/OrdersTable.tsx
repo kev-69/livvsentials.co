@@ -7,7 +7,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Eye, MoreHorizontal } from "lucide-react";
+import { 
+  // Eye, 
+  MoreHorizontal 
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -111,7 +114,7 @@ const OrdersTable = () => {
     <div className="rounded-md border overflow-hidden">
       <div className="overflow-y-auto max-h-[250px]">
         <Table>
-          <TableHeader className="sticky top-0 bg-white dark:bg-gray-800 z-10">
+          <TableHeader className="sticky top-0 dark:bg-gray-800 z-10">
             <TableRow>
               <TableHead>Order ID</TableHead>
               <TableHead>Customer</TableHead>
