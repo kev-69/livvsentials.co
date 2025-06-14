@@ -6,6 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 // Sample data
 const products = [
@@ -85,34 +86,39 @@ const products = [
 
 const TopSelling = () => {
   return (
-    <div className="rounded-md border overflow-hidden">
-      <div className="overflow-y-auto max-h-[250px]">
-        <Table>
-          <TableHeader className="sticky top-0 bg-white dark:bg-gray-800 z-10">
-            <TableRow>
-              <TableHead>Product ID</TableHead>
-              <TableHead>Product Name</TableHead>
-              <TableHead>Price</TableHead>
-              <TableHead>Category Name</TableHead>
-              <TableHead>Units Sold</TableHead>
-              <TableHead>Sales Made</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {products.map((product) => (
-              <TableRow key={product.id}>
-                <TableCell>{product.id}</TableCell>
-                <TableCell>{product.name}</TableCell>
-                <TableCell>${product.price.toFixed(2)}</TableCell>
-                <TableCell>{product.category}</TableCell>
-                <TableCell>{product.unitSold}</TableCell>
-                <TableCell>${product.sales.toFixed(2)}</TableCell>
+    <Card className="h-full">
+      <CardHeader className="pb-2">
+        <CardTitle>Top Selling Products</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-y-auto max-h-[250px]">
+          <Table>
+            <TableHeader className="sticky top-0 bg-white dark:bg-gray-800 z-10">
+              <TableRow>
+                <TableHead>Product ID</TableHead>
+                <TableHead>Product Name</TableHead>
+                <TableHead>Price</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Units Sold</TableHead>
+                <TableHead>Sales Made</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
+            </TableHeader>
+            <TableBody>
+              {products.map((product) => (
+                <TableRow key={product.id}>
+                  <TableCell className="font-medium">{product.id}</TableCell>
+                  <TableCell>{product.name}</TableCell>
+                  <TableCell>${product.price.toFixed(2)}</TableCell>
+                  <TableCell>{product.category}</TableCell>
+                  <TableCell>{product.unitSold}</TableCell>
+                  <TableCell>${product.sales.toFixed(2)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
