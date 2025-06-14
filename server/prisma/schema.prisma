@@ -7,6 +7,19 @@ datasource db {
     url      = env("DB_URL")
 }
 
+model Admin {
+    id                      String  @id @default(uuid())
+    email                   String  @unique
+    password                String
+    firstName               String
+    lastName                String
+    role                    UserRole    @default(ADMIN)
+    createdAt   DateTime    @default(now())
+    updatedAt   DateTime    @updatedAt
+
+    @@index(email)
+}
+
 // ======== USER-RELATED MODELS ========
 model User {
     id                      String  @id @default(uuid())
