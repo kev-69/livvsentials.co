@@ -1,7 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { Chart as ChartJS, ChartData, ChartOptions } from 'chart.js';
+import type { 
+  Chart as ChartJS, 
+  // ChartData, 
+  // ChartOptions 
+} from 'chart.js';
 
 // You'll need to install Chart.js:
 // npm install chart.js
