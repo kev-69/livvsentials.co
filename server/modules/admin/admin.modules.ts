@@ -16,6 +16,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 import { loginAdmin } from "./auth/auth.controller";
+import { fetchAdminProfile } from "./auth/auth.controller";
 
 // analytics
 import { analyticsController } from "./analytics/analytics.controller";
@@ -36,6 +37,12 @@ const router = Router();
 
 router.post('/login',
     loginAdmin
+)
+
+router.get('/profile',
+    validateToken,
+    isAdmin,
+    fetchAdminProfile
 )
 
 // ======== CATEGORY-RELATED ROUTES ========
