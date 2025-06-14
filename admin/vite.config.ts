@@ -11,4 +11,8 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    host: "127.0.0.1", // Force IPv4 loopback
+    port: 5173,         // Optional: change if port is still blocked
+  },
 })
