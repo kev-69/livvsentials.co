@@ -1,19 +1,20 @@
 import apiClient from "@/lib/api"
 
 export const loginAdmin = async (email: string, password: string) => {
-    const response = await apiClient.post('/login',
-        {
-            email,
-            password
+    try {
+        const response = await apiClient.post('/admin/login', { email, password })
+        console.log('Login response:', response.data);
+        const data = response.data.data
+        if (data && data.token) {
+            localStorage.setItem('adminToken', data.token)
         }
-    )
 
-    const data = response.data.data
-    if (data && data.token) {
-        localStorage.setItem('adminToken', data.token)
+        return response.data
+    } catch (error) {
+        console.error('Login error:', error);
+        throw error
     }
-
-    return response.data
+    
 }
 
 export const logoutAdmin = async() => {
