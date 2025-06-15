@@ -18,13 +18,8 @@ import {
   Star,
   Globe,
   Bell,
-  // Truck,
-  // Percent,
-  // Palette,
   Search,
-  // Filter,
   Download,
-  // PlusCircle
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -44,6 +39,7 @@ import TotalCustomers from '@/components/cards/TotalCustomers';
 import OrdersTable from '@/components/tables/OrdersTable';
 import OrderChart from '@/components/charts/OrderChart';
 import ActivityFeed from '@/components/cards/ActivityFeed';
+import GuestCustomers from '@/components/cards/GuestCustomers';
 
 // Import order page components
 import TotalOrders from '@/components/cards/TotalOrders';
@@ -54,8 +50,6 @@ import PaymentHistory from '@/components/tables/PaymentHistory';
 import PendingPayments from '@/components/cards/PendingPayments';
 import RefundRate from '@/components/cards/RefundRate';
 import CustomersTable from '@/components/tables/CustomersTable';
-// import CustomerGrowth from '@/components/cards/CustomerGrowth';
-import GuestCustomers from '@/components/cards/GuestCustomers';
 
 // Content type definition
 type ContentType = 'dashboard' | 'orders' | 'customers' | 'payments' | 'store';
@@ -225,11 +219,7 @@ const Dashboard = () => {
                 <Menu size={20} />
               </Button>
               <h1 className="text-xl font-semibold ml-2 inline-block dark:text-gray-100">
-                {activeContent === 'dashboard' && 'Welcome back, ' + (admin?.firstName || 'Admin')}
-                {activeContent === 'orders' && 'Order Management'}
-                {activeContent === 'customers' && 'Customer Management'}
-                {activeContent === 'payments' && 'Payment History'}
-                {activeContent === 'store' && 'Store Settings'}
+                {'Welcome back, ' + (admin?.firstName || 'Admin')}
               </h1>
             </div>
             <div className="flex items-center space-x-4">
@@ -252,7 +242,7 @@ const Dashboard = () => {
           {/* Dashboard Content */}
           {activeContent === 'dashboard' && (
             <div className="p-6">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-6">
                 <h1 className="text-2xl font-bold tracking-tight dark:text-white">Overview</h1>
               </div>
               {/* Dashboard Metrics */}
@@ -267,7 +257,7 @@ const Dashboard = () => {
                 <OrderChart />
               </div>
               
-              {/* Orders Table and Activity Feed side by side */}
+              {/* Top selling products and Activity Feed side by side */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-20">
                 {/* Recent Orders - Takes 2/3 of the width */}
                 <div className="lg:col-span-2">
@@ -284,8 +274,8 @@ const Dashboard = () => {
 
           {/* Orders Content */}
           {activeContent === 'orders' && (
-            <div className="flex-1 space-y-6 p-6 md:p-8">
-              <div className="flex items-center justify-between">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
                 <h1 className="text-2xl font-bold tracking-tight dark:text-white">Orders</h1>
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm" className="hidden md:flex">
@@ -296,7 +286,7 @@ const Dashboard = () => {
               </div>
 
               {/* Order Stats Cards */}
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-3 mt-6 mb-6">
                 <TotalOrders />
                 <WeekOrders />
                 <AvgWeeklyOrders />
@@ -304,7 +294,7 @@ const Dashboard = () => {
 
               {/* Order Tabs */}
               <Tabs value={orderTab} onValueChange={setOrderTab} className="space-y-4">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
                   <TabsList>
                     <TabsTrigger value="pending">
                       Pending
@@ -342,21 +332,11 @@ const Dashboard = () => {
                 </div>
 
                 <TabsContent value="all" className="space-y-4">
-                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-                    <div className="p-6">
-                      <h2 className="text-lg font-medium mb-4 dark:text-white">All Orders</h2>
-                      <OrdersTable />
-                    </div>
-                  </div>
+                  <OrdersTable />
                 </TabsContent>
 
                 <TabsContent value="pending" className="space-y-4">
-                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-                    <div className="p-6">
-                      <h2 className="text-lg font-medium mb-4 dark:text-white">Pending Orders</h2>
-                      <PendingOrders />
-                    </div>
-                  </div>
+                  <PendingOrders />
                 </TabsContent>
               </Tabs>
             </div>
@@ -364,8 +344,8 @@ const Dashboard = () => {
 
           {/* Customers Content - Placeholder */}
           {activeContent === 'customers' && (
-            <div className="flex-1 space-y-6 p-6 md:p-8">
-              <div className="flex items-center justify-between">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
                 <h1 className="text-2xl font-bold tracking-tight dark:text-white">Users Management</h1>
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm" className="hidden md:flex">
@@ -376,51 +356,23 @@ const Dashboard = () => {
               </div>
 
               {/* User Stats Cards */}
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-2 mt-6 mb-6">
                 <TotalCustomers />
                 {/* <CustomerGrowth /> */}
                 <GuestCustomers />
               </div>
 
               {/* User Search and Filter */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-6">
-                <h2 className="text-lg font-medium dark:text-white">Customer List</h2>
-                <div className="flex w-full sm:w-auto gap-2">
-                  <div className="relative w-full sm:w-64">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="search"
-                      placeholder="Search customers..."
-                      className="w-full pl-8"
-                    />
-                  </div>
-                  <Select defaultValue="all">
-                    <SelectTrigger className="w-[140px]">
-                      <SelectValue placeholder="Filter" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Customers</SelectItem>
-                      <SelectItem value="recent">Recent Customers</SelectItem>
-                      <SelectItem value="active">Active Customers</SelectItem>
-                      <SelectItem value="inactive">Inactive Customers</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>  
-
-              {/* User Management Table */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-                <div className="p-6">
-                  <CustomersTable />
-                </div>
+              <div className="mt-6">
+                <CustomersTable />
               </div>
             </div>
           )}
 
           {/* Payments Content - Placeholder */}
           {activeContent === 'payments' && (
-            <div className="flex-1 space-y-6 p-6 md:p-8">
-              <div className="flex items-center justify-between">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
                 <h1 className="text-2xl font-bold tracking-tight dark:text-white">Payments</h1>
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm" className="hidden md:flex">
@@ -431,7 +383,7 @@ const Dashboard = () => {
               </div>
 
               {/* Payment Stats Cards */}
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-3 mt-6 mb-6">
                 <TotalRevenue />
                 <PendingPayments />
                 <RefundRate />
@@ -439,24 +391,7 @@ const Dashboard = () => {
 
               {/* Payment History */}
               <div className="mt-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-medium dark:text-white">Payment History</h2>
-                  <div className="flex w-full sm:w-auto gap-2 max-w-xs ml-auto">
-                    <div className="relative w-full">
-                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        type="search"
-                        placeholder="Search payments..."
-                        className="w-full pl-8"
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-                  <div className="p-6">
-                    <PaymentHistory />
-                  </div>
-                </div>
+                  <PaymentHistory />
               </div>
             </div>
           )}
