@@ -9,6 +9,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, DownloadIcon } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
 // Sample data for payment history
 const payments = [
@@ -139,51 +142,70 @@ const getStatusColor = (status: string) => {
 
 const PaymentHistory = () => {
   return (
-    <div className="rounded-md border overflow-hidden">
-      <div className="overflow-y-auto max-h-[450px]">
-        <Table>
-          <TableHeader className="sticky top-0 z-10">
-            <TableRow>
-              <TableHead>Payment ID</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Payment Method</TableHead>
-              <TableHead>Order ID</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {payments.map((payment) => (
-              <TableRow key={payment.id}>
-                <TableCell className="font-medium">{payment.id}</TableCell>
-                <TableCell>{payment.customer}</TableCell>
-                <TableCell>{payment.date}</TableCell>
-                <TableCell>{payment.paymentMethod}</TableCell>
-                <TableCell>{payment.orderId}</TableCell>
-                <TableCell>
-                  <Badge variant="outline" className={getStatusColor(payment.status)}>
-                    {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
-                  </Badge>
-                </TableCell>
-                <TableCell>{payment.amount}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <Button variant="ghost" size="icon" title="View Details">
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" title="Download Receipt">
-                      <DownloadIcon className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
+    <Card className="h-full">
+      <CardHeader className="pb-2">
+        <CardTitle>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-lg font-medium dark:text-white">Payment History</h2>
+            <div className="flex w-full sm:w-auto gap-2 max-w-xs ml-auto">
+              <div className="relative w-full">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search payments..."
+                  className="w-full pl-8"
+                  />
+              </div>
+            </div>
+          </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-y-auto max-h-[250px]">
+          <Table>
+            <TableHeader className="sticky top-0 bg-white dark:bg-gray-800 z-10">
+              <TableRow>
+                <TableHead>Payment ID</TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Payment Method</TableHead>
+                <TableHead>Order ID</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
+            </TableHeader>
+            <TableBody>
+              {payments.map((payment) => (
+                <TableRow key={payment.id}>
+                  <TableCell className="font-medium">{payment.id}</TableCell>
+                  <TableCell>{payment.customer}</TableCell>
+                  <TableCell>{payment.date}</TableCell>
+                  <TableCell>{payment.paymentMethod}</TableCell>
+                  <TableCell>{payment.orderId}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={getStatusColor(payment.status)}>
+                      {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{payment.amount}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button variant="ghost" size="icon" title="View Details">
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" title="Download Receipt">
+                        <DownloadIcon className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
