@@ -7,7 +7,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, Search } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +16,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 
 // Sample data
 const customers = [
@@ -127,55 +136,85 @@ const customers = [
 
 const CustomersTable = () => {
   return (
-    <div className="rounded-md border overflow-hidden">
-      <div className="overflow-y-auto max-h-[450px]">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Customer</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Phone</TableHead>
-              <TableHead>Orders</TableHead>
-              <TableHead>Total Spent</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {customers.map((customer) => (
-              <TableRow key={customer.id}>
-                <TableCell className="flex items-center gap-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={`https://ui-avatars.com/api/?name=${customer.name.replace(' ', '+')}&background=random`} />
-                    <AvatarFallback>{customer.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <span>{customer.name}</span>
-                </TableCell>
-                <TableCell>{customer.email}</TableCell>
-                <TableCell>{customer.phone}</TableCell>
-                <TableCell>{customer.orders}</TableCell>
-                <TableCell>{customer.totalSpent}</TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem>View profile</DropdownMenuItem>
-                      <DropdownMenuItem>View orders</DropdownMenuItem>
-                      <DropdownMenuItem>Edit customer</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
+    <Card className="h-full">
+      <CardHeader className="pb-2">
+        <CardTitle>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-2">
+          <h2 className="text-lg font-medium dark:text-white">Customer List</h2>
+            <div className="flex w-full sm:w-auto gap-2">
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search customers..."
+                  className="w-full pl-8"
+                />
+              </div>
+                <Select defaultValue="all">
+                  <SelectTrigger className="w-[140px]">
+                      <SelectValue placeholder="Filter" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Customers</SelectItem>
+                    <SelectItem value="recent">Recent Customers</SelectItem>
+                    <SelectItem value="active">Active Customers</SelectItem>
+                    <SelectItem value="inactive">Inactive Customers</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div> 
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-y-auto max-h-[250px]">
+          <Table>
+            <TableHeader className="sticky top-0 dark:bg-gray-800 z-10">
+              <TableRow>
+                <TableHead>Customer</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead>Orders</TableHead>
+                <TableHead>Total Spent</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
+            </TableHeader>
+            <TableBody>
+              {customers.map((customer) => (
+                <TableRow key={customer.id}>
+                  <TableCell className="flex items-center gap-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={`https://ui-avatars.com/api/?name=${customer.name.replace(' ', '+')}&background=random`} />
+                      <AvatarFallback>{customer.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <span>{customer.name}</span>
+                  </TableCell>
+                  <TableCell>{customer.email}</TableCell>
+                  <TableCell>{customer.phone}</TableCell>
+                  <TableCell>{customer.orders}</TableCell>
+                  <TableCell>{customer.totalSpent}</TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Open menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem>View profile</DropdownMenuItem>
+                        <DropdownMenuItem>View orders</DropdownMenuItem>
+                        <DropdownMenuItem>Edit customer</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+    </CardContent>
+    </Card>
   );
 };
 
