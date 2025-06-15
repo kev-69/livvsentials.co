@@ -14,6 +14,7 @@ import {
     Eye 
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 // Sample data for pending orders
 const pendingOrders = [
@@ -103,50 +104,59 @@ const getStatusLabel = (status: string) => {
 
 const PendingOrders = () => {
   return (
-    <div className="rounded-md border overflow-hidden">
-      <div className="overflow-y-auto max-h-[250px]">
-        <Table>
-          <TableHeader className="sticky top-0 z-10">
-            <TableRow>
-              <TableHead>Order ID</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Items</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {pendingOrders.map((order) => (
-              <TableRow key={order.id}>
-                <TableCell className="font-medium">{order.id}</TableCell>
-                <TableCell>{order.customer}</TableCell>
-                <TableCell>{order.date}</TableCell>
-                <TableCell>{order.items}</TableCell>
-                <TableCell>
-                  <Badge variant="outline" className={getStatusColor(order.status)}>
-                    {getStatusLabel(order.status)}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <Button variant="ghost" size="icon" title="View Order">
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="text-green-600" title="Approve">
-                      <CheckCircle className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="text-red-600" title="Reject">
-                      <XCircle className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
+    <Card className="h-full">
+      <CardHeader className="pb-2">
+        <CardTitle>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-lg font-medium dark:text-white">Pending Orders</h2>
+          </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-y-auto max-h-[250px]">
+          <Table>
+            <TableHeader className="sticky top-0 dark:bg-gray-800 z-10">
+              <TableRow>
+                <TableHead>Order ID</TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Items</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
+            </TableHeader>
+            <TableBody>
+              {pendingOrders.map((order) => (
+                <TableRow key={order.id}>
+                  <TableCell className="font-medium">{order.id}</TableCell>
+                  <TableCell>{order.customer}</TableCell>
+                  <TableCell>{order.date}</TableCell>
+                  <TableCell>{order.items}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={getStatusColor(order.status)}>
+                      {getStatusLabel(order.status)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button variant="ghost" size="icon" title="View Order">
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="text-green-600" title="Approve">
+                        <CheckCircle className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="text-red-600" title="Reject">
+                        <XCircle className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
