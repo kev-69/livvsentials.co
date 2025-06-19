@@ -20,6 +20,10 @@ import {
   Bell,
   Search,
   Download,
+  PlusCircle,
+  Filter,
+  Pencil,
+  Trash
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -31,6 +35,14 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 // Import dashboard components
 import TotalRevenue from '@/components/cards/TotalRevenue';
@@ -51,6 +63,13 @@ import PendingPayments from '@/components/cards/PendingPayments';
 import RefundRate from '@/components/cards/RefundRate';
 import CustomersTable from '@/components/tables/CustomersTable';
 
+// imports for the product components
+import ProductCard from '@/components/cards/ProductCard';
+import ViewProduct from '@/components/modals/ViewProduct';
+import EditProduct from '@/components/modals/EditProduct';
+import { sampleCategories, sampleProducts } from '@/data/data';
+import DeleteProduct from '@/components/modals/DeleteProduct';
+
 // Content type definition
 type ContentType = 'dashboard' | 'orders' | 'customers' | 'payments' | 'store';
 type SubContentType = 'products' | 'platformSettings' | 'reviews' | 'notifications';
@@ -62,6 +81,39 @@ const Dashboard = () => {
   const [activeContent, setActiveContent] = useState<ContentType>('dashboard');
   const [activeSubContent, setActiveSubContent] = useState<SubContentType | null>(null);
   const [orderTab, setOrderTab] = useState('pending');
+  const [showViewProductModal, setShowViewProductModal] = useState(false);
+  const [showEditProductModal, setShowEditProductModal] = useState(false);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [showAddProductModal, setShowAddProductModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [products, setProducts] = useState(sampleProducts);
+  const [categories, setCategories] = useState(sampleCategories);
+  const [productTab, setProductTab] = useState('all');
+
+  const handleSaveProduct = (updatedProduct: any) => {
+    // For a new product
+    if (!updatedProduct.id) {
+      const newProduct = {
+        ...updatedProduct,
+        id: `PROD-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
+      };
+      setProducts([...products, newProduct]);
+    } else {
+      // For updating an existing product
+      setProducts(products.map(p => 
+        p.id === updatedProduct.id ? updatedProduct : p
+      ));
+    }
+    setShowEditProductModal(false);
+  };
+
+  const handleDeleteProduct = () => {
+    if (selectedProduct) {
+      setProducts(products.filter(p => p.id !== selectedProduct.id));
+      setShowDeleteConfirmModal(false);
+      setSelectedProduct(null);
+    }
+  };
 
   return (
     <div className="flex h-screen">
@@ -69,7 +121,7 @@ const Dashboard = () => {
       <div className={`${sidebarOpen ? 'w-64' : 'w-20'} dashboard-sidebar transition-all duration-300 flex flex-col`}>
         {/* Logo */}
         <div className={`p-6 flex items-center justify-center ${!sidebarOpen && 'justify-center'}`}>
-          <h1 className={`text-xl font-bold text-primary dark:text-primary ${!sidebarOpen && 'hidden'}`}>LIVVSENTIALS</h1>
+          <h1 className={`text-xl font-bold text-primary dark:text-primary ${!sidebarOpen && 'hidden'}`}>LIVSSENTIALS</h1>
           {/* Toggle button */}
           <Button 
             variant="ghost" 
@@ -397,12 +449,186 @@ const Dashboard = () => {
           )}
 
           {/* Store Settings Content - Placeholder */}
-          {activeContent === 'store' && (
-            <div className="p-6">
-              <h1 className="text-2xl font-bold mb-6 dark:text-white">Store Settings</h1>
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-                <p className="text-gray-500 dark:text-gray-400">Store configuration settings will go here.</p>
+          {activeContent === 'store' && activeSubContent === 'products' && (
+            <div className="flex-1 space-y-6 p-6 md:p-8">
+              <div className="flex items-center justify-between">
+                <h1 className="text-2xl font-bold tracking-tight dark:text-white">Products</h1>
+                <Button onClick={() => {
+                  setSelectedProduct(null);
+                  setShowEditProductModal(true);
+                }}>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Add Product
+                </Button>
               </div>
+
+              <Tabs defaultValue={productTab} onValueChange={setProductTab} className="space-y-4">
+                <TabsList>
+                  <TabsTrigger value="all">All Products</TabsTrigger>
+                  <TabsTrigger value="in-stock">In Stock</TabsTrigger>
+                  <TabsTrigger value="out-of-stock">Out of Stock</TabsTrigger>
+                  <TabsTrigger value="categories">Categories</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="all" className="space-y-4">
+                  {/* Search and filter row */}
+                  <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center justify-between">
+                    <div className="relative w-full sm:w-64">
+                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        type="search"
+                        placeholder="Search products..."
+                        className="w-full pl-8"
+                      />
+                    </div>
+                    <div className="flex gap-2 w-full sm:w-auto">
+                      <Button variant="outline" size="icon" className="dark:border-gray-700">
+                        <Filter className="h-4 w-4" />
+                      </Button>
+                      <Select defaultValue="all">
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Categories</SelectItem>
+                          {categories.map(cat => (
+                            <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Products grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {products.map(product => (
+                      <ProductCard 
+                        key={product.id} 
+                        product={product}
+                        onView={(p) => {
+                          setSelectedProduct(p);
+                          setShowViewProductModal(true);
+                        }}
+                        onEdit={(p) => {
+                          setSelectedProduct(p);
+                          setShowEditProductModal(true);
+                        }}
+                      />
+                    ))}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="in-stock" className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {products.filter(p => p.isAvailable).map(product => (
+                      <ProductCard 
+                        key={product.id} 
+                        product={product}
+                        onView={(p) => {
+                          setSelectedProduct(p);
+                          setShowViewProductModal(true);
+                        }}
+                        onEdit={(p) => {
+                          setSelectedProduct(p);
+                          setShowEditProductModal(true);
+                        }}
+                      />
+                    ))}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="out-of-stock" className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {products.filter(p => !p.isAvailable).map(product => (
+                      <ProductCard 
+                        key={product.id} 
+                        product={product}
+                        onView={(p) => {
+                          setSelectedProduct(p);
+                          setShowViewProductModal(true);
+                        }}
+                        onEdit={(p) => {
+                          setSelectedProduct(p);
+                          setShowEditProductModal(true);
+                        }}
+                      />
+                    ))}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="categories" className="space-y-4">
+                  {/* Categories management UI */}
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-lg font-medium dark:text-white">Product Categories</h2>
+                    <Button size="sm">
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Add Category
+                    </Button>
+                  </div>
+                  
+                  <div className="table-container">
+                    <Table>
+                      <TableHeader className="table-header">
+                        <TableRow className="table-row">
+                          <TableHead className="table-header-cell">Name</TableHead>
+                          <TableHead className="table-header-cell">Products</TableHead>
+                          <TableHead className="table-header-cell">Created</TableHead>
+                          <TableHead className="table-header-cell text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {categories.map(category => (
+                          <TableRow key={category.id} className="table-row">
+                            <TableCell className="table-cell font-medium">{category.name}</TableCell>
+                            <TableCell className="table-cell">{category.productCount}</TableCell>
+                            <TableCell className="table-cell">{new Date(category.createdAt).toLocaleDateString()}</TableCell>
+                            <TableCell className="table-cell text-right">
+                              <Button variant="ghost" size="icon" className="table-action-button">
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="text-red-500 dark:text-red-400 table-action-button">
+                                <Trash className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              {/* View Product Modal */}
+              <ViewProduct 
+                open={showViewProductModal} 
+                onOpenChange={setShowViewProductModal}
+                product={selectedProduct}
+                onEdit={() => {
+                  setShowViewProductModal(false);
+                  setShowEditProductModal(true);
+                }}
+                onDelete={() => {
+                  setShowViewProductModal(false);
+                  setShowDeleteConfirmModal(true);
+                }}
+              />
+
+              {/* Edit Product Modal */}
+              <EditProduct
+                open={showEditProductModal} 
+                onOpenChange={setShowEditProductModal}
+                product={selectedProduct}
+                categories={categories}
+                onSave={handleSaveProduct}
+              />
+
+              {/* Delete Confirmation Modal */}
+              <DeleteProduct
+                open={showDeleteConfirmModal}
+                onOpenChange={setShowDeleteConfirmModal}
+                productName={selectedProduct?.name || ""}
+                onConfirm={handleDeleteProduct}
+              />
             </div>
           )}
         </div>
