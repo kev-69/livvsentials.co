@@ -14,7 +14,7 @@ cloudinary.config({
 export const uploadImage = async (filePath: string) => {
   try {
     const result = await cloudinary.uploader.upload(filePath, {
-      folder: 'livvsentials-products',
+      folder: 'livssentials-products',
     });
     // remove the file from local storage after uploading to cloudinary
     fs.unlinkSync(filePath);
