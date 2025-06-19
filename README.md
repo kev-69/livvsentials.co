@@ -1,1 +1,1 @@
-# livvsentials.co
+# livssentials.co
