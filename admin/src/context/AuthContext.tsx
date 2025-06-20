@@ -17,6 +17,8 @@ interface AuthContextType {
     logout: () => void;
     clearError: () => void;
     isAuthenticated: boolean;
+    setAdmin: (admin: Admin | null) => void;
+    setIsAuthenticated: (isAuthenticated: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -65,7 +67,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             error,
             logout,
             clearError,
-            isAuthenticated
+            isAuthenticated,
+            setAdmin,
+            setIsAuthenticated
         }}>
             {children}
         </AuthContext.Provider>
