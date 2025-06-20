@@ -295,3 +295,15 @@ router.get('/analytics/sales-report',
 );
 
 export { router as adminRoutes };
+
+// List all orders (with filters, pagination)
+// Get order stats (total, weekly, etc.)
+// Get order chart data (date, count)
+// List pending orders
+// Get top selling products
+// List all customers
+// Get customer stats (total, guest, growth)
+// Get customer growth data (for chart)
+// List all payments
+// Get payment stats (total, pending, refund)
+// Get recent activity feed
