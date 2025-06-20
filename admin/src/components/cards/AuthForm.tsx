@@ -29,18 +29,16 @@ export const Login = () => {
         }
 
         try {
-            // console.log('Logging in with:', { email, password });
-            await loginAdmin(email, password)
-            // console.log('Login response:', response);
+            await loginAdmin(email, password);
             const profile = await apiClient.get('/admin/profile');
             setAdmin(profile.data.data);
             setIsAuthenticated(true);
-            toast.success('Login successfull')
-            navigate('/dashboard')
+            toast.success('Login successful');
+            navigate('/dashboard');
         } catch (error) {
             console.error('Login error:', error);
             if (error instanceof Error) {
-                toast.error(error.message || 'Login failed')
+                toast.error(error.message || 'Login failed');
             } else {
                 toast.error('An unknown error occurred')
             }
