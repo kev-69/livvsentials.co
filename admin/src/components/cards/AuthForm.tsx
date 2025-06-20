@@ -30,7 +30,7 @@ export const Login = () => {
 
         try {
             // console.log('Logging in with:', { email, password });
-            const response = await loginAdmin(email, password)
+            await loginAdmin(email, password)
             // console.log('Login response:', response);
             const profile = await apiClient.get('/admin/profile');
             setAdmin(profile.data.data);
