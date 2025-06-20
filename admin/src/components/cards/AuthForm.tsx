@@ -13,12 +13,14 @@ import { loginAdmin } from "@/services/auth"
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from 'sonner'
+import apiClient from "@/lib/api";
 
 export const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('')
-    const navigate = useNavigate()
+    const navigate = useNavigate();
     const { isLoading } = useAuth();
+    const { setAdmin, setIsAuthenticated } = useAuth();
 
     const handleSubmit = async(e: React.FormEvent) => {
         e.preventDefault();
@@ -27,9 +29,12 @@ export const Login = () => {
         }
 
         try {
-            console.log('Logging in with:', { email, password });
+            // console.log('Logging in with:', { email, password });
             const response = await loginAdmin(email, password)
-            console.log('Login response:', response);
+            // console.log('Login response:', response);
+            const profile = await apiClient.get('/admin/profile');
+            setAdmin(profile.data.data);
+            setIsAuthenticated(true);
             toast.success('Login successfull')
             navigate('/dashboard')
         } catch (error) {
