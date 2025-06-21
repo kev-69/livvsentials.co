@@ -1,0 +1,212 @@
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle 
+} from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MoreHorizontal, Search, Star, CheckCircle, XCircle, Eye, Trash, Reply } from 'lucide-react';
+import type { Review } from '@/components/tabs/sub-tabs/Reviews';
+
+interface ReviewsCardProps {
+  reviews: Review[];
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  statusFilter: string;
+  setStatusFilter: (status: string) => void;
+  onViewReview: (review: Review) => void;
+  onReplyToReview: (review: Review) => void;
+  onUpdateStatus: (reviewId: string, status: 'published' | 'pending' | 'hidden') => void;
+  onDeleteReview: (reviewId: string) => void;
+  formatDate: (date: string) => string;
+}
+
+const StarRating = ({ rating }: { rating: number }) => {
+  return (
+    <div className="flex items-center">
+      {[...Array(5)].map((_, i) => (
+        <Star
+          key={i}
+          className={`w-4 h-4 ${
+            i < rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
+          }`}
+        />
+      ))}
+    </div>
+  );
+};
+
+const StatusBadge = ({ status }: { status: string }) => {
+  switch (status) {
+    case 'published':
+      return <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">Published</Badge>;
+    case 'pending':
+      return <Badge variant="outline" className="bg-yellow-50 text-yellow-600 border-yellow-200">Pending</Badge>;
+    case 'hidden':
+      return <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">Hidden</Badge>;
+    default:
+      return <Badge variant="outline">{status}</Badge>;
+  }
+};
+
+const ReviewsCard = ({
+  reviews,
+  searchQuery,
+  setSearchQuery,
+  statusFilter,
+  setStatusFilter,
+  onViewReview,
+  onReplyToReview,
+  onUpdateStatus,
+  onDeleteReview,
+  formatDate
+}: ReviewsCardProps) => {
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle>Product Reviews</CardTitle>
+        <CardDescription>
+          View and respond to customer reviews of your products
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col sm:flex-row gap-4 mb-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+            <Input
+              placeholder="Search by product, customer or review content..."
+              className="pl-8"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div className="w-full sm:w-48">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="published">Published</SelectItem>
+                <SelectItem value="pending">Pending Review</SelectItem>
+                <SelectItem value="hidden">Hidden</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        <div className="border rounded-md">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Product</TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead>Rating</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead className="w-[80px]">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {reviews.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                    No reviews found. Try adjusting your search or filters.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                reviews.map((review) => (
+                  <TableRow key={review.id}>
+                    <TableCell className="font-medium">{review.productName}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-6 w-6">
+                          <AvatarImage src={review.customerAvatar || undefined} />
+                          <AvatarFallback>{review.customerName.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        {review.customerName}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <StarRating rating={review.rating} />
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={review.status} />
+                    </TableCell>
+                    <TableCell className="text-sm text-gray-500">
+                      {formatDate(review.createdAt)}
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => onViewReview(review)}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => onReplyToReview(review)}>
+                            <Reply className="mr-2 h-4 w-4" />
+                            {review.reply ? "Edit Reply" : "Reply"}
+                          </DropdownMenuItem>
+                          {review.status !== 'published' && (
+                            <DropdownMenuItem onClick={() => onUpdateStatus(review.id, 'published')}>
+                              <CheckCircle className="mr-2 h-4 w-4" />
+                              Publish
+                            </DropdownMenuItem>
+                          )}
+                          {review.status !== 'hidden' && (
+                            <DropdownMenuItem onClick={() => onUpdateStatus(review.id, 'hidden')}>
+                              <XCircle className="mr-2 h-4 w-4" />
+                              Hide
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            className="text-red-600"
+                            onClick={() => onDeleteReview(review.id)}
+                          >
+                            <Trash className="mr-2 h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default ReviewsCard;
