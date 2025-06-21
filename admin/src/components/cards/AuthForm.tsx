@@ -13,7 +13,7 @@ import { loginAdmin } from "@/services/auth"
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from 'sonner'
-import apiClient from "@/lib/api";
+import { api } from "@/lib/api";
 
 export const Login = () => {
     const [email, setEmail] = useState('');
@@ -30,7 +30,7 @@ export const Login = () => {
 
         try {
             await loginAdmin(email, password);
-            const profile = await apiClient.get('/admin/profile');
+            const profile = await api.get('/admin/profile');
             setAdmin(profile.data.data);
             setIsAuthenticated(true);
             toast.success('Login successful');
