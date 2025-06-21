@@ -26,7 +26,6 @@ export const SettingsTab = () => {
     firstName: admin?.firstName || '',
     lastName: admin?.lastName || '',
     email: admin?.email || '',
-    phone: '123-456-7890', // Mock data
   });
 
   // Password settings state
@@ -175,16 +174,6 @@ export const SettingsTab = () => {
                       name="email"
                       type="email"
                       value={profileForm.email}
-                      onChange={handleProfileChange}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="phone-mobile">Phone Number</Label>
-                    <Input
-                      id="phone-mobile"
-                      name="phone"
-                      value={profileForm.phone}
                       onChange={handleProfileChange}
                     />
                   </div>
@@ -381,16 +370,6 @@ export const SettingsTab = () => {
                           name="email"
                           type="email"
                           value={profileForm.email}
-                          onChange={handleProfileChange}
-                          className="max-w-md"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="phone-desktop">Phone Number</Label>
-                        <Input
-                          id="phone-desktop"
-                          name="phone"
-                          value={profileForm.phone}
                           onChange={handleProfileChange}
                           className="max-w-md"
                         />
