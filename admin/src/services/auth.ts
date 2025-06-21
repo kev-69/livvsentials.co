@@ -1,8 +1,8 @@
-import apiClient from "@/lib/api"
+import { api } from "@/lib/api"
 
 export const loginAdmin = async (email: string, password: string) => {
     try {
-        const response = await apiClient.post('/admin/login', { email, password })
+        const response = await api.post('/admin/login', { email, password })
         console.log('Login response:', response.data);
         const data = response.data.data
         if (data && data.token) {
