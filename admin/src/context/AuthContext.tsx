@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import type { ReactNode } from 'react';
-import apiClient from '@/lib/api';
+import {api} from '@/lib/api';
 
 interface Admin {
     id: string;
@@ -37,7 +37,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 try {
                     setIsLoading(true)
                     // make request to dashbaord
-                    const response = await apiClient.get('/admin/profile');
+                    const response = await api.get('/admin/profile');
                     setAdmin(response.data.data)
                     setIsAuthenticated(true)
                 } catch (error) {
