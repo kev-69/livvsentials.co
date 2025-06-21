@@ -34,7 +34,7 @@ const ProductCard = ({ product, onView, onEdit }: ProductCardProps) => {
       <CardContent className="p-4">
         <h3 className="font-medium truncate">{product.name}</h3>
         <div className="flex justify-between items-center mt-1">
-          <span className="text-primary font-semibold">${product.price.toFixed(2)}</span>
+          <span className="text-primary font-semibold">GHS {product.price.toFixed(2)}</span>
           <Badge variant="outline" className="dark:border-gray-700">{product.category}</Badge>
         </div>
         <div className="mt-3 flex justify-between">
