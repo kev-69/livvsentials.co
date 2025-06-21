@@ -1,18 +1,9 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Download,
-  Search,
 } from 'lucide-react';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
 
 // Import order components
 import TotalOrders from '@/components/cards/TotalOrders';
@@ -55,28 +46,6 @@ const OrdersTab = () => {
             </TabsTrigger>
             <TabsTrigger value="all">All Orders</TabsTrigger>
           </TabsList>
-          <div className="flex w-full sm:w-auto gap-2">
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search orders..."
-                className="w-full pl-8"
-              />
-            </div>
-            <Select defaultValue="all">
-              <SelectTrigger className="w-[130px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="processing">Processing</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
         </div>
 
         <TabsContent value="all" className="space-y-4">
