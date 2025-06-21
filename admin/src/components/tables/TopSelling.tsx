@@ -108,10 +108,10 @@ const TopSelling = () => {
                 <TableRow key={product.id}>
                   <TableCell className="font-medium">{product.id}</TableCell>
                   <TableCell>{product.name}</TableCell>
-                  <TableCell>${product.price.toFixed(2)}</TableCell>
+                  <TableCell>GHS {product.price.toFixed(2)}</TableCell>
                   <TableCell>{product.category}</TableCell>
                   <TableCell>{product.unitSold}</TableCell>
-                  <TableCell>${product.sales.toFixed(2)}</TableCell>
+                  <TableCell>GHS {product.sales.toFixed(2)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
