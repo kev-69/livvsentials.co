@@ -31,6 +31,7 @@ import ViewProduct from '@/components/modals/ViewProduct';
 import EditProduct from '@/components/modals/EditProduct';
 import DeleteProduct from '@/components/modals/DeleteProduct';
 import { sampleCategories, sampleProducts } from '@/data/data';
+import { toast } from 'sonner';
 
 const ProductsTab = () => {
   const [productTab, setProductTab] = useState('all');
@@ -39,7 +40,7 @@ const ProductsTab = () => {
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [products, setProducts] = useState(sampleProducts);
-  const [categories, setCategories] = useState(sampleCategories);
+  const [categories] = useState(sampleCategories);
 
   const handleSaveProduct = (updatedProduct: any) => {
     // For a new product
@@ -64,6 +65,7 @@ const ProductsTab = () => {
       setShowDeleteConfirmModal(false);
       setSelectedProduct(null);
     }
+    toast.success(`${selectedProduct.id} has been deleted successfully.`);
   };
 
   return (
