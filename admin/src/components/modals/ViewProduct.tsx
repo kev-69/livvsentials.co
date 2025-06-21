@@ -42,7 +42,7 @@ const ViewProduct = ({ open, onOpenChange, product, onEdit, onDelete }: ViewProd
             </div>
             <div>
               <h4 className="text-sm text-muted-foreground">Price</h4>
-              <p className="dark:text-gray-200">${product.price.toFixed(2)}</p>
+              <p className="dark:text-gray-200">GHS {product.price.toFixed(2)}</p>
             </div>
             <div>
               <h4 className="text-sm text-muted-foreground">Category</h4>
