@@ -9,26 +9,31 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-interface DeleteProductDialogProps {
+interface DeleteProductProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   productName: string;
   onConfirm: () => void;
 }
 
-const DeleteProduct = ({ 
-  open, 
-  onOpenChange, 
-  productName, 
-  onConfirm 
-}: DeleteProductDialogProps) => {
+const DeleteProduct = ({
+  open,
+  onOpenChange,
+  productName,
+  onConfirm,
+}: DeleteProductProps) => {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently delete the product "{productName}" and cannot be undone.
+            This will permanently delete the product "{productName}". This action cannot be undone.
+            <br /><br />
+            <strong className="text-red-600 dark:text-red-400">
+              Note: Products that are part of existing orders cannot be deleted. 
+              Consider marking it as out of stock instead.
+            </strong>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
