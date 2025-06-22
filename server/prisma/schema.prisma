@@ -13,7 +13,10 @@ model Admin {
     password                String
     firstName               String
     lastName                String
+    profilePhoto            String?
     role                    UserRole    @default(ADMIN)
+    supportTickets          SupportTicket[]
+    tickerMessages          TicketMessage[]
     createdAt   DateTime    @default(now())
     updatedAt   DateTime    @updatedAt
 
@@ -34,6 +37,10 @@ model User {
     wishlists               Wishlist[]
     addresses               UserAddress[]
     verificationTokens      VerificationToken[]
+    reviews                 Review[]
+    questions               Question[]
+    supportTickets      SupportTicket[]
+    ticketMessages      TicketMessage[]
     createdAt   DateTime    @default(now())
     updatedAt   DateTime    @updatedAt
 
@@ -111,11 +118,181 @@ model Product {
     orderItems      OrderItem[]
     cartItems       CartItem[]
     wishlistItems   Wishlist[]
+    reviews         Review[]
+    questions       Question[]
     createdAt       DateTime    @default(now())
     updatedAt       DateTime    @updatedAt
 
     @@index([categoryId])
     @@index([slug])
+}
+
+// ======== REVIEWS & QUESTIONS MODELS ========
+model Review {
+    id              String      @id @default(uuid())
+    userId          String
+    user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+    productId       String
+    product         Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+    rating          Int         @default(0)
+    title           String
+    content         String      @db.Text
+    images          String[]
+    reply           String?     @db.Text
+    status          ReviewStatus @default(PENDING)
+    createdAt       DateTime    @default(now())
+    updatedAt       DateTime    @updatedAt
+
+    @@index([userId])
+    @@index([productId])
+    @@index([status])
+}
+
+enum ReviewStatus {
+    PUBLISHED
+    PENDING
+    HIDDEN
+}
+
+model Question {
+    id              String          @id @default(uuid())
+    userId          String
+    user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+    productId       String
+    product         Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+    question        String          @db.Text
+    answer          String?         @db.Text
+    status          QuestionStatus  @default(PENDING)
+    createdAt       DateTime        @default(now())
+    updatedAt       DateTime        @updatedAt
+
+    @@index([userId])
+    @@index([productId])
+    @@index([status])
+}
+
+enum QuestionStatus {
+    ANSWERED
+    PENDING
+}
+
+// ======== PLATFORM SETTINGS MODELS ========
+model PlatformSettings {
+    id              String      @id @default(uuid())
+    settingKey      String      @unique
+    settingValue    Json
+    createdAt       DateTime    @default(now())
+    updatedAt       DateTime    @updatedAt
+
+    @@index([settingKey])
+}
+
+// ======== NOTIFICATION MODELS ========
+model Notification {
+    id              String              @id @default(uuid())
+    recipient       String
+    message         String              @db.Text
+    notificationType NotificationType
+    orderId         String?
+    order           Order?              @relation(fields: [orderId], references: [id], onDelete: SetNull)
+    status          NotificationStatus  @default(PENDING)
+    termiiMessageId String?
+    credits         Int                 @default(0)
+    createdAt       DateTime            @default(now())
+    updatedAt       DateTime            @updatedAt
+
+    @@index([recipient])
+    @@index([orderId])
+    @@index([status])
+}
+
+enum NotificationType {
+    ORDER_CONFIRMATION
+    SHIPPING_UPDATE
+    DELIVERY_CONFIRMATION
+    ORDER_CANCELLATION
+    PAYMENT_REMINDER
+}
+
+enum NotificationStatus {
+    PENDING
+    DELIVERED
+    FAILED
+}
+
+model NotificationTemplate {
+    id              String              @id @default(uuid())
+    templateId      String              @unique
+    name            String
+    content         String              @db.Text
+    type            NotificationType
+    active          Boolean             @default(true)
+    createdAt       DateTime            @default(now())
+    updatedAt       DateTime            @updatedAt
+
+    @@index([templateId])
+}
+
+// ======== HELP CENTER MODELS ========
+model SupportTicket {
+    id              String          @id @default(uuid())
+    ticketNumber    String          @unique
+    subject         String
+    userId          String?
+    user            User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+    adminId         String?
+    admin           Admin?          @relation(fields: [adminId], references: [id], onDelete: SetNull)
+    customerName    String
+    customerEmail   String
+    status          TicketStatus    @default(OPEN)
+    priority        TicketPriority  @default(MEDIUM)
+    messages        TicketMessage[]
+    orderId         String?
+    order           Order?          @relation(fields: [orderId], references: [id], onDelete: SetNull)
+    createdAt       DateTime        @default(now())
+    updatedAt       DateTime        @updatedAt
+    resolvedAt      DateTime?
+
+    @@index([userId])
+    @@index([adminId])
+    @@index([orderId])
+    @@index([status])
+    @@index([ticketNumber])
+}
+
+model TicketMessage {
+    id              String        @id @default(uuid())
+    ticketId        String
+    ticket          SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+    content         String        @db.Text
+    senderType      SenderType
+    userId          String?
+    user            User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+    adminId         String?
+    admin           Admin?        @relation(fields: [adminId], references: [id], onDelete: SetNull)
+    createdAt       DateTime      @default(now())
+
+    @@index([ticketId])
+    @@index([userId])
+    @@index([adminId])
+}
+
+enum TicketStatus {
+    OPEN
+    PENDING
+    RESOLVED
+}
+
+enum TicketPriority {
+    LOW
+    MEDIUM
+    HIGH
+}
+
+enum SenderType {
+    CUSTOMER
+    ADMIN
+    SYSTEM
 }
 
 // ======== SHOPPING-RELATED MODELS ========
@@ -169,6 +346,8 @@ model Order {
     products        Product[]
     orderItems      OrderItem[]
     payments        Payment[]
+    notifications   Notification[]
+    supportTickets  SupportTicket[]
     createdAt       DateTime    @default(now())
     updatedAt       DateTime    @updatedAt
 
