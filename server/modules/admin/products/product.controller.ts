@@ -56,8 +56,12 @@ export const productController = {
             const formData = updateProductFormSchema.parse(req.body);
             const files = req.files as Express.Multer.File[] || [];
             
+            // Handle existingImages - it might be a JSON string
+            let existingImages = formData.existingImages;
+            
             const product = await productService.updateProduct(productId, {
                 ...formData,
+                existingImages,
                 files
             });
             
