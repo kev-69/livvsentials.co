@@ -29,16 +29,6 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// export const login = async (email: string, password: string) => {
-//     try {
-//         const response = await api.post('/admin/login', { email, password });
-//         console.log('Login response:', response.data);
-//     } catch (error) {
-//         console.error('Login error:', error);
-//         throw error;   
-//     }
-// }
-
 export const fetchCustomers = async () => {
   try {
     const response = await api.get('/admin/users');
@@ -119,9 +109,13 @@ export const fetchTopSellingProducts = async () => {
   }
 }
 
-export const addProduct = async (productData: any) => {
+export const addProduct = async (productData: FormData) => {
   try {
-    const response = await api.post('/admin/products', productData);
+    const response = await api.post('/admin/product', productData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
     return response.data.data;
   } catch (error) {
     console.error('Error adding product:', error);
@@ -129,9 +123,13 @@ export const addProduct = async (productData: any) => {
   }
 }
 
-export const updateProduct = async (productId: string, productData: any) => {
+export const updateProduct = async (productId: string, productData: FormData) => {
   try {
-    const response = await api.patch(`/admin/product/${productId}`, productData);
+    const response = await api.patch(`/admin/product/${productId}`, productData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      }  
+    });
     return response.data.data;
   } catch (error) {
     console.error('Error updating product:', error);
@@ -185,6 +183,36 @@ export const deleteCategory = async (categoryId: string) => {
     return response.data;
   } catch (error) {
     console.error('Error deleting category:', error);
+    throw error;
+  }
+}
+
+export const fetchOrdersChart = async () => {
+  try {
+    const response = await api.get('/admin/orders/stats');
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching order stats:', error);
+    throw error;
+  }
+}
+
+export const fetchAvgWeeklyOrders = async () => {
+  try {
+    const response = await api.get('/admin/orders/stats/avg-weekly');
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching average weekly orders:', error);
+    throw error;
+  }
+}
+
+export const fetchOrdersThisWeek = async () => {
+  try {
+    const response = await api.get('/admin/orders/stats/this-week');
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching orders for this week:', error);
     throw error;
   }
 }
