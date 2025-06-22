@@ -9,11 +9,13 @@ interface ProductCardProps {
     name: string;
     price: number;
     category: string;
-    imageUrl?: string;
-    isAvailable: boolean;
+    productImages: string[];
+    inStock: boolean;
+    salePrice?: number;
   };
   onView: (product: any) => void;
   onEdit: (product: any) => void;
+  onDelete: (product: any) => void;
 }
 
 const ProductCard = ({ product, onView, onEdit }: ProductCardProps) => {
@@ -21,11 +23,11 @@ const ProductCard = ({ product, onView, onEdit }: ProductCardProps) => {
     <Card className="h-full overflow-hidden hover:shadow-md transition-shadow">
       <div className="relative aspect-square">
         <img 
-          src={product.imageUrl || '/placeholder-product.jpg'} 
+          src={product.productImages?.[0]?.replace(/[\[\]"']/g, '') || '/placeholder-product.jpg'} 
           alt={product.name}
-          className="object-cover w-full h-full"
+          className="object-cover w-full h-[300px]"
         />
-        {!product.isAvailable && (
+        {!product.inStock && (
           <div className="absolute top-0 right-0 bg-red-500 text-white px-2 py-1 text-xs font-medium">
             Out of Stock
           </div>
