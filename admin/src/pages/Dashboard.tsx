@@ -1,6 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   LayoutDashboard, 
@@ -10,51 +9,100 @@ import {
   CreditCard, 
   HelpCircle, 
   Settings,
-  Menu,
-  X,
   Package,
   Star,
   Globe,
   Bell,
+  ShoppingCart,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 
-// tabs
+// Main tabs
 import SettingsTab from '@/components/tabs/Settings';
 import HelpCenterTab from '@/components/tabs/HelpCenter';
 import OrdersTab from '@/components/tabs/Orders';
 import CustomersTab from '@/components/tabs/Customers';
 import PaymentsTab from '@/components/tabs/Payments';
 import DashboardTab from '@/components/tabs/Dashboard';
+
+// Sub tabs
 import ProductsTab from '@/components/tabs/sub-tabs/Products';
+import PlatformSettingsTab from '@/components/tabs/sub-tabs/PlatformSettings';
+import NotificationsTab from '@/components/tabs/sub-tabs/Notifications';
+import ReviewsTab from '@/components/tabs/sub-tabs/Reviews';
 
 // Content type definition
 type ContentType = 'dashboard' | 'orders' | 'customers' | 'payments' | 'store' | 'help' | 'settings';
 type SubContentType = 'products' | 'platformSettings' | 'reviews' | 'notifications';
 
+// Logo component
+const Logo = ({ size = "normal" }: { size?: "normal" | "small" }) => (
+  <div className={`flex items-center ${size === "small" ? "gap-1" : "gap-2"}`}>
+    <ShoppingCart 
+      className={`text-primary dark:text-primary ${size === "small" ? "h-5 w-5" : "h-6 w-6"}`} 
+      strokeWidth={2.5}
+    />
+    <span 
+      className={`font-bold text-primary dark:text-primary ${size === "small" ? "text-base" : "text-xl"}`}
+    >
+      LIVSSENTIALS
+    </span>
+  </div>
+);
+
 const Dashboard = () => {
   const { admin } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [activeContent, setActiveContent] = useState<ContentType>('dashboard');
   const [activeSubContent, setActiveSubContent] = useState<SubContentType | null>(null);
   const [orderTab, setOrderTab] = useState('pending');
 
+  // Automatically handle sidebar state based on screen size
+  const isSmallScreen = windowWidth < 768; // md breakpoint in Tailwind
+  const sidebarOpen = !isSmallScreen;
+  
+  // State for store menu (automatically open on larger screens)
+  const [storeMenuOpen, setStoreMenuOpen] = useState(!isSmallScreen);
+
+  // Listen for window resize events
+  useEffect(() => {
+    const handleResize = () => {
+      const newWidth = window.innerWidth;
+      setWindowWidth(newWidth);
+      
+      // Automatically open store menu on larger screens
+      if (newWidth >= 768) {
+        setStoreMenuOpen(true);
+      } else {
+        setStoreMenuOpen(false);
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Handle store menu click
+  const handleStoreClick = () => {
+    if (isSmallScreen) {
+      setStoreMenuOpen(!storeMenuOpen);
+    }
+    setActiveContent('store');
+  };
+
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'w-64' : 'w-20'} dashboard-sidebar transition-all duration-300 flex flex-col`}>
+      <div className={`${isSmallScreen ? 'w-20' : 'w-64'} dashboard-sidebar transition-all duration-300 flex flex-col`}>
         {/* Logo */}
-        <div className={`p-6 flex items-center justify-center ${!sidebarOpen && 'justify-center'}`}>
-          <h1 className={`text-xl font-bold text-primary dark:text-primary ${!sidebarOpen && 'hidden'}`}>LIVSSENTIALS</h1>
-          {/* Toggle button */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="absolute right-0 mr-2 lg:hidden"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-          >
-            {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
-          </Button>
+        <div className={`p-6 flex items-center ${isSmallScreen ? 'justify-center' : 'justify-start'}`}>
+          {!isSmallScreen ? (
+            <Logo />
+          ) : (
+            <ShoppingCart className="h-6 w-6 text-primary dark:text-primary" strokeWidth={2.5} />
+          )}
         </div>
         
         {/* Main Navigation */}
@@ -64,7 +112,7 @@ const Dashboard = () => {
               icon={<LayoutDashboard size={20} />} 
               label="Dashboard" 
               active={activeContent === 'dashboard'} 
-              collapsed={!sidebarOpen}
+              collapsed={isSmallScreen}
               onClick={() => setActiveContent('dashboard')}
             />
             
@@ -73,23 +121,29 @@ const Dashboard = () => {
             <div className="w-full">
               <div 
                 className={`
-                  flex items-center p-3 rounded-lg transition-colors 
+                  flex items-center p-3 rounded-lg transition-colors cursor-pointer
                   text-gray-700 dark:text-gray-300
                   ${activeContent === 'store' ? 'bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary' : ''}
-                  ${!sidebarOpen ? 'justify-center' : 'px-4 justify-between'}
+                  ${isSmallScreen ? 'justify-center' : 'px-4 justify-between'}
                 `}
+                onClick={handleStoreClick}
               >
                 <div className="flex items-center">
                   <span className={activeContent === 'store' ? 'text-primary dark:text-primary' : 'text-gray-500 dark:text-gray-400'}>
                     <Store size={20} />
                   </span>
-                  {sidebarOpen && <span className="ml-3 font-medium">Store Settings</span>}
+                  {!isSmallScreen && <span className="ml-3 font-medium">Store Settings</span>}
                 </div>
+                {!isSmallScreen && (
+                  <span>
+                    {storeMenuOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                  </span>
+                )}
               </div>
               
-              {/* Always visible sub-menu */}
-              {sidebarOpen && (
-                <ul className="mt-1 ml-7 space-y-1 border-l-2 border-gray-200 dark:border-dark-300 pl-2">
+              {/* Show submenu conditionally */}
+              {((activeContent === 'store' && isSmallScreen) || (storeMenuOpen && !isSmallScreen)) && (
+                <ul className={`mt-1 space-y-1 ${isSmallScreen ? 'absolute left-20 bg-white dark:bg-gray-800 shadow-lg rounded-md p-2 z-50 w-48' : 'ml-7 border-l-2 border-gray-200 dark:border-dark-300 pl-2'}`}>
                   <SubNavItem 
                     icon={<Package size={18} />} 
                     label="Products" 
@@ -97,7 +151,9 @@ const Dashboard = () => {
                     onClick={() => {
                       setActiveSubContent('products');
                       setActiveContent('store');
+                      if (isSmallScreen) setStoreMenuOpen(false);
                     }}
+                    collapsed={false} // always show text in submenu
                   />
                   <SubNavItem 
                     icon={<Star size={18} />}  
@@ -106,7 +162,9 @@ const Dashboard = () => {
                     onClick={() => {
                       setActiveSubContent('platformSettings');
                       setActiveContent('store');
+                      if (isSmallScreen) setStoreMenuOpen(false);
                     }}
+                    collapsed={false}
                   />
                   <SubNavItem 
                     icon={<Globe size={18} />} 
@@ -115,7 +173,9 @@ const Dashboard = () => {
                     onClick={() => {
                       setActiveSubContent('reviews');
                       setActiveContent('store');
+                      if (isSmallScreen) setStoreMenuOpen(false);
                     }}
+                    collapsed={false}
                   />
                   <SubNavItem 
                     icon={<Bell size={18} />} 
@@ -124,7 +184,9 @@ const Dashboard = () => {
                     onClick={() => {
                       setActiveSubContent('notifications');
                       setActiveContent('store');
+                      if (isSmallScreen) setStoreMenuOpen(false);
                     }}
+                    collapsed={false}
                   />
                 </ul>
               )}
@@ -135,7 +197,7 @@ const Dashboard = () => {
               icon={<ShoppingBag size={20} />} 
               label="Orders" 
               active={activeContent === 'orders'}
-              collapsed={!sidebarOpen}
+              collapsed={isSmallScreen}
               onClick={() => {
                 setActiveContent('orders');
                 setOrderTab('pending');
@@ -145,14 +207,14 @@ const Dashboard = () => {
               icon={<Users size={20} />} 
               label="Customers" 
               active={activeContent === 'customers'}
-              collapsed={!sidebarOpen}
+              collapsed={isSmallScreen}
               onClick={() => setActiveContent('customers')}
             />
             <NavItem 
               icon={<CreditCard size={20} />} 
               label="Payments" 
               active={activeContent === 'payments'}
-              collapsed={!sidebarOpen}
+              collapsed={isSmallScreen}
               onClick={() => setActiveContent('payments')}
             />
           </ul>
@@ -163,14 +225,14 @@ const Dashboard = () => {
               icon={<HelpCircle size={20} />} 
               label="Help Center" 
               active={activeContent === 'help'}
-              collapsed={!sidebarOpen} 
+              collapsed={isSmallScreen} 
               onClick={() => setActiveContent('help')}
             />
             <NavItem 
               icon={<Settings size={20} />} 
               label="Settings" 
               active={activeContent === 'settings'}
-              collapsed={!sidebarOpen} 
+              collapsed={isSmallScreen} 
               onClick={() => setActiveContent('settings')}
             />
           </ul>
@@ -182,16 +244,14 @@ const Dashboard = () => {
         {/* Header */}
         <header className="dashboard-header z-10">
           <div className="flex items-center justify-between p-4">
-            <div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="md:hidden"
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-              >
-                <Menu size={20} />
-              </Button>
-              <h1 className="text-xl font-semibold ml-2 inline-block dark:text-gray-100">
+            <div className="flex items-center">
+              {/* Display logo on mobile when sidebar is collapsed */}
+              <div className="md:hidden ml-2">
+                <Logo size="small" />
+              </div>
+              
+              {/* Welcome text */}
+              <h1 className="text-xl font-semibold ml-2 hidden md:inline-block dark:text-gray-100">
                 {'Welcome back, ' + (admin?.firstName || 'Admin')}
               </h1>
             </div>
@@ -215,16 +275,27 @@ const Dashboard = () => {
           {/* Dashboard Content */}
           {activeContent === 'dashboard' && <DashboardTab />}
 
-          {/* Store Settings Content - Placeholder */}
+          {/* Store Settings Content */}
           {activeContent === 'store' && activeSubContent === 'products' && <ProductsTab />}
+          {activeContent === 'store' && activeSubContent === 'platformSettings' && <PlatformSettingsTab />}
+          {activeContent === 'store' && activeSubContent === 'reviews' && <ReviewsTab />}
+          {activeContent === 'store' && activeSubContent === 'notifications' && <NotificationsTab />}
+          
+          {/* If no sub-content is selected yet but store is active, default to products */}
+          {activeContent === 'store' && !activeSubContent && (
+            <>
+              {setActiveSubContent('products')}
+              <ProductsTab />
+            </>
+          )}
 
           {/* Orders Content */}
           {activeContent === 'orders' && <OrdersTab />}
 
-          {/* Customers Content - Placeholder */}
+          {/* Customers Content */}
           {activeContent === 'customers' && <CustomersTab />}
 
-          {/* Payments Content - Placeholder */}
+          {/* Payments Content */}
           {activeContent === 'payments' && <PaymentsTab />}
 
           {/* Help Center Content */}
@@ -270,10 +341,11 @@ interface SubNavItemProps {
   icon: React.ReactNode;
   label: string;
   active?: boolean;
+  collapsed?: boolean;
   onClick?: () => void;
 }
 
-const SubNavItem = ({ icon, label, active = false, onClick }: SubNavItemProps) => (
+const SubNavItem = ({ icon, label, active = false, collapsed = false, onClick }: SubNavItemProps) => (
   <li>
     <button 
       onClick={onClick}
@@ -285,7 +357,7 @@ const SubNavItem = ({ icon, label, active = false, onClick }: SubNavItemProps) =
       `}
     >
       <span className={active ? 'text-primary dark:text-primary' : 'text-gray-500 dark:text-gray-400'}>{icon}</span>
-      <span className="ml-2">{label}</span>
+      {!collapsed && <span className="ml-2">{label}</span>}
     </button>
   </li>
 );
