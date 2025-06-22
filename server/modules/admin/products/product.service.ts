@@ -4,7 +4,7 @@ import logger from "../../../utils/logger";
 import { uploadImage } from '../../../configs/cloudinary.config';
 
 export const productService = {
-    addProduct: async (productData: {
+    async addProduct(productData: {
         name: string;
         description: string;
         price: number;
@@ -13,7 +13,7 @@ export const productService = {
         categoryId: string;
         productImages: string[];
         files: Express.Multer.File[];
-    }) => {
+    }) {
         try{
             // check if category exists
             const category = await prisma.category.findUnique({
@@ -59,7 +59,7 @@ export const productService = {
         }
     },
 
-    getProducts: async () => {
+    async getProducts () {
         try {
             const products = await prisma.product.findMany({
                 include: {
@@ -73,7 +73,7 @@ export const productService = {
         }
     },
 
-    updateProduct: async (productId: string, productData: {
+    async updateProduct(productId: string, productData: {
         name?: string;
         description?: string;
         price?: number;
@@ -83,8 +83,8 @@ export const productService = {
         categoryId?: string;
         productImages?: string[];
         files?: Express.Multer.File[];
-        existingImages?: string[];
-    }) => {
+        existingImages?: string | string[];
+    }) {
         try {
             // check if product exists
             const existingProduct = await prisma.product.findUnique({
@@ -93,6 +93,7 @@ export const productService = {
             if (!existingProduct) {
                 throw new Error(`Product with ID ${productId} does not exist`);
             }
+            
             // check if category is being updated
             if (productData.categoryId) {
                 const categoryExists = await prisma.category.findUnique({
@@ -102,6 +103,7 @@ export const productService = {
                     throw new Error(`Category with ID ${productData.categoryId} does not exist`);
                 }
             }
+            
             // handle slug update
             let updatedSlug;
             if (productData.name) {
@@ -109,6 +111,7 @@ export const productService = {
             } else {
                 updatedSlug = existingProduct.slug;
             }
+            
             // handle image upload
             let imageUrls: string[] = [];
             if (productData.files && productData.files.length > 0) {
@@ -117,17 +120,45 @@ export const productService = {
                 );
             }
 
-            // Combine existing and new images if both are provided
-            let finalImages = existingProduct.productImages;
-            if (productData.existingImages && productData.existingImages.length > 0) {
-                // If we're explicitly passing existing images, use only those as the base
-                finalImages = productData.existingImages;
+            // Properly parse existingImages if it's a JSON string
+            let existingImages: string[] = [];
+            if (productData.existingImages) {
+                try {
+                    if (typeof productData.existingImages === 'string') {
+                        // Try to parse the JSON string
+                        const parsed = JSON.parse(productData.existingImages);
+                        
+                        // Check if it's an array
+                        if (Array.isArray(parsed)) {
+                            // Make sure each item is a clean string without brackets or quotes
+                            existingImages = parsed.map(url => 
+                                typeof url === 'string' ? url.replace(/[\[\]"']/g, '') : url
+                            );
+                        } else {
+                            logger.warn(`existingImages parsed but not an array: ${productData.existingImages}`);
+                            existingImages = [];
+                        }
+                    } else if (Array.isArray(productData.existingImages)) {
+                        // It's already an array
+                        existingImages = productData.existingImages.map(url => 
+                            typeof url === 'string' ? url.replace(/[\[\]"']/g, '') : url
+                        );
+                    }
+                } catch (e) {
+                    logger.error(`Error parsing existingImages: ${e}`);
+                    // If parsing fails, use the original product images
+                    existingImages = existingProduct.productImages;
+                }
+            } else {
+                // No existingImages provided, so keep the current ones
+                existingImages = existingProduct.productImages;
             }
             
-            if (imageUrls.length > 0) {
-                // Add new images to the existing ones
-                finalImages = [...finalImages, ...imageUrls];
-            }
+            // Combine existing and new images
+            const finalImages = [...existingImages, ...imageUrls];
+            
+            // Log the images for debugging
+            logger.info(`Updating product ${productId} with images: ${JSON.stringify(finalImages)}`);
 
             const product = await prisma.product.update({
                 where: { id: productId },
@@ -150,7 +181,7 @@ export const productService = {
         }
     },
 
-    deleteProduct: async (productId: string) => {
+    async deleteProduct (productId: string) {
         try {
             const product = await prisma.product.delete({
                 where: { id: productId },
@@ -161,4 +192,53 @@ export const productService = {
             throw new Error(`Error deleting product: ${error}`);
         }
     },
+
+    async getTopSellingProducts (limit: number = 10) {
+        try {
+            const products = await prisma.product.findMany({
+                take: limit,
+                orderBy: {
+                    orderItems: {
+                        _count: 'desc'
+                    },
+                },
+                include: {
+                    category: {
+                        select: {
+                            name: true,
+                        },
+                    },
+                    orderItems: {
+                        select: {
+                            quantity: true,
+                            price: true,
+                        },
+                    },
+                },
+        });
+
+        // Transform the data to match the frontend requirements
+        const transformedProducts = products.map(product => {
+            // Calculate total units sold
+            const unitSold = product.orderItems.reduce((total, item) => total + item.quantity, 0);
+            
+            // Calculate total sales amount
+            const sales = product.orderItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+            
+            return {
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                category: product.category.name,
+                unitSold: unitSold,
+                sales: sales
+            };
+        });
+
+        return transformedProducts;
+        } catch (error) {
+            logger.error(`Error fetching top selling products: ${error}`);
+            throw new Error(`Error fetching top selling products: ${error}`);
+        }
+    }
 }
