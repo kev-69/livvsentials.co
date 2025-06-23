@@ -374,7 +374,7 @@ const EditProduct = ({ open, onOpenChange, product, categories, onProductUpdated
                         className="relative aspect-square border rounded-md overflow-hidden group"
                       >
                         <img 
-                          src={url.replace(/[\[\]"']/g, '')} 
+                          src={url} 
                           alt={`Product ${index + 1}`}
                           className="w-full h-full object-cover" 
                         />
