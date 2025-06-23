@@ -4,22 +4,19 @@ import {
   UserCircle, 
   Clock, 
   CheckCircle, 
-  AlertCircle, 
   Send, 
   Search,
   Loader2,
   Flag,
-  Filter,
-  Plus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useAuth } from '@/context/AuthContext';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+// import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { 
   getTickets, 
@@ -27,30 +24,13 @@ import {
   addMessage, 
   updateTicketStatus, 
   updateTicketPriority,
-  createTicket
 } from '@/lib/api';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const getStatusBadgeClass = (status: string) => {
   switch (status.toLowerCase()) {
@@ -98,7 +78,7 @@ const formatTime = (timestamp: string) => {
 };
 
 export const HelpCenterTab = () => {
-  const { admin } = useAuth();
+  // const { admin } = useAuth();
   const [selectedTab, setSelectedTab] = useState('all');
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const [newMessage, setNewMessage] = useState('');
@@ -107,14 +87,6 @@ export const HelpCenterTab = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isChangingStatus, setIsChangingStatus] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [newTicketOpen, setNewTicketOpen] = useState(false);
-  const [newTicketForm, setNewTicketForm] = useState({
-    subject: '',
-    customerName: '',
-    customerEmail: '',
-    priority: 'MEDIUM',
-    initialMessage: ''
-  });
 
   // Fetch all tickets when component mounts
   useEffect(() => {
@@ -223,45 +195,6 @@ export const HelpCenterTab = () => {
     }
   };
 
-  // Handle creating a new ticket
-  const handleCreateTicket = async () => {
-    // Validate form
-    if (!newTicketForm.subject || !newTicketForm.customerName || !newTicketForm.customerEmail) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-    
-    setIsSubmitting(true);
-    try {
-      const newTicket = await createTicket(newTicketForm);
-      
-      // Reset form
-      setNewTicketForm({
-        subject: '',
-        customerName: '',
-        customerEmail: '',
-        priority: 'MEDIUM',
-        initialMessage: ''
-      });
-      
-      // Close modal
-      setNewTicketOpen(false);
-      
-      // Refresh tickets
-      fetchTickets();
-      
-      // Select the new ticket
-      setSelectedTicket(newTicket);
-      
-      toast.success('New ticket created successfully');
-    } catch (error) {
-      console.error('Failed to create ticket:', error);
-      toast.error('Failed to create ticket. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   // Handle viewing a ticket
   const handleViewTicket = async (ticketId: string) => {
     setIsLoading(true);
@@ -280,10 +213,6 @@ export const HelpCenterTab = () => {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold tracking-tight dark:text-white">Help Center</h1>
-        <Button onClick={() => setNewTicketOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          New Ticket
-        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 overflow-y-auto max-h-[full]">
@@ -466,7 +395,7 @@ export const HelpCenterTab = () => {
                 </div>
               </CardHeader>
               <CardContent className="flex-grow overflow-auto p-0">
-                <div className="p-4 space-y-4 max-h-[350px] overflow-y-auto">
+                <div className="p-4 space-y-4 max-h-[400px] overflow-y-auto">
                   {selectedTicket.messages && selectedTicket.messages.length > 0 ? (
                     selectedTicket.messages.map((message: any, index: number) => (
                       <div 
@@ -562,108 +491,6 @@ export const HelpCenterTab = () => {
           )}
         </div>
       </div>
-
-      {/* New Ticket Dialog */}
-      <Dialog open={newTicketOpen} onOpenChange={setNewTicketOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Create New Support Ticket</DialogTitle>
-            <DialogDescription>
-              Create a new support ticket to track customer issues or inquiries.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <label htmlFor="subject" className="text-sm font-medium">
-                Subject
-              </label>
-              <Input
-                id="subject"
-                placeholder="Enter ticket subject"
-                value={newTicketForm.subject}
-                onChange={(e) => setNewTicketForm({...newTicketForm, subject: e.target.value})}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <label htmlFor="customerName" className="text-sm font-medium">
-                  Customer Name
-                </label>
-                <Input
-                  id="customerName"
-                  placeholder="Enter customer name"
-                  value={newTicketForm.customerName}
-                  onChange={(e) => setNewTicketForm({...newTicketForm, customerName: e.target.value})}
-                />
-              </div>
-              <div className="grid gap-2">
-                <label htmlFor="customerEmail" className="text-sm font-medium">
-                  Customer Email
-                </label>
-                <Input
-                  id="customerEmail"
-                  type="email"
-                  placeholder="Enter customer email"
-                  value={newTicketForm.customerEmail}
-                  onChange={(e) => setNewTicketForm({...newTicketForm, customerEmail: e.target.value})}
-                />
-              </div>
-            </div>
-            <div className="grid gap-2">
-              <label htmlFor="priority" className="text-sm font-medium">
-                Priority
-              </label>
-              <Select
-                value={newTicketForm.priority}
-                onValueChange={(value) => setNewTicketForm({...newTicketForm, priority: value})}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="HIGH">High</SelectItem>
-                  <SelectItem value="MEDIUM">Medium</SelectItem>
-                  <SelectItem value="LOW">Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-2">
-              <label htmlFor="initialMessage" className="text-sm font-medium">
-                Initial Message (Optional)
-              </label>
-              <Textarea
-                id="initialMessage"
-                placeholder="Enter initial ticket message"
-                value={newTicketForm.initialMessage}
-                onChange={(e) => setNewTicketForm({...newTicketForm, initialMessage: e.target.value})}
-                className="min-h-[100px]"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setNewTicketOpen(false)}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleCreateTicket}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                <>Create Ticket</>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
