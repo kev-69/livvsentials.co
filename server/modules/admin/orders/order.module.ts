@@ -72,7 +72,7 @@ router.get('/orders/:orderId',
  * @desc Update order status to shipped using ID
  * @access Admin only
 */
-router.post('/orders/:orderId/ship',
+router.post('/order/:orderId/ship',
     validateRequest({
         params: z.object({ orderId: z.string().uuid() }),
     }),
@@ -84,7 +84,7 @@ router.post('/orders/:orderId/ship',
  * @desc Update order status to cancelled using ID
  * @access Admin only
 */
-router.post('/orders/:orderId/cancel',
+router.post('/order/:orderId/cancel',
     validateRequest({
         params: z.object({ orderId: z.string().uuid() }),
     }),
@@ -96,7 +96,7 @@ router.post('/orders/:orderId/cancel',
  * @desc Update order status to delivered using ID
  * @access Admin only
 */
-router.post('/orders/:orderId/deliver',
+router.post('/order/:orderId/deliver',
     validateRequest({
         params: z.object({ orderId: z.string().uuid() }),
     }),
