@@ -39,6 +39,16 @@ export const fetchCustomers = async () => {
   }
 };
 
+export const fetchOrderDetails = async (orderId: string) => {
+  try {
+    const response = await api.get(`/admin/orders/${orderId}`);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching order details:', error);
+    throw error;
+  }
+};
+
 export const fetchOrders = async () => {
   try {
     const response = await api.get('/admin/orders');
@@ -48,6 +58,45 @@ export const fetchOrders = async () => {
     throw error;
   }
 };
+
+export const shipOrder = async (orderId: string) => {
+  try {
+    const response = await api.post(`/admin/order/${orderId}/ship`)
+    return response.data.data
+  } catch (error) {
+    console.error('Error shipping order', error);
+    if (axios.isAxiosError(error) && error.response) {
+      throw error.response.data || error;
+    }
+    throw error;
+  }
+}
+
+export const deliverOrder = async (orderId: string) => {
+  try {
+    const response = await api.post(`/admin/order/${orderId}/deliver`)
+    return response.data.data
+  } catch (error) {
+    console.error('Error delivering order', error);
+    if (axios.isAxiosError(error) && error.response) {
+      throw error.response.data || error;
+    }
+    throw error;
+  }
+}
+
+export const cancelOrder = async (orderId: string) => {
+  try {
+    const response = await api.post(`/admin/order/${orderId}/cancel`)
+    return response.data.data
+  } catch (error) {
+    console.error('Error canceling order', error);
+    if (axios.isAxiosError(error) && error.response) {
+      throw error.response.data || error;
+    }
+    throw error;
+  }
+}
 
 export const fetchPendingOrders = async () => {
   try {
@@ -98,6 +147,16 @@ export const fetchProductBySlug = async (slug: string) => {
     throw error;
   }
 }
+
+export const fetchTopSellingProduct = async () => {
+  try {
+    const response = await api.get('/admin/products/top-seller');
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching top selling product:', error);
+    throw error;
+  }
+};
 
 export const fetchTopSellingProducts = async () => {
   try {
@@ -197,7 +256,17 @@ export const fetchOrdersChart = async () => {
   }
 }
 
-export const fetchAvgWeeklyOrders = async () => {
+export const getTotalOrders = async () => {
+  try {
+    const response = await api.get('/admin/orders');
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching total orders:', error);
+    throw error;
+  }
+};
+
+export const getWeeklyOrdersAvg = async () => {
   try {
     const response = await api.get('/admin/orders/stats/avg-weekly');
     return response.data.data;
@@ -205,14 +274,54 @@ export const fetchAvgWeeklyOrders = async () => {
     console.error('Error fetching average weekly orders:', error);
     throw error;
   }
-}
+};
 
-export const fetchOrdersThisWeek = async () => {
+export const getOrdersThisWeek = async () => {
   try {
     const response = await api.get('/admin/orders/stats/this-week');
     return response.data.data;
   } catch (error) {
-    console.error('Error fetching orders for this week:', error);
+    console.error('Error fetching this week orders:', error);
     throw error;
   }
-}
+};
+
+export const fetchTotalRevenue = async () => {
+  try {
+    const response = await api.get('/admin/payments/revenue');
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching total revenue:', error);
+    throw error;
+  }
+};
+
+export const fetchProcessingPayments = async () => {
+  try {
+    const response = await api.get('/admin/payments/processing');
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching processing payments:', error);
+    throw error;
+  }
+};
+
+export const getUserStats = async () => {
+  try {
+    const response = await api.get('/admin/users/stats');
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching user statistics:', error);
+    throw error;
+  }
+};
+
+export const getGuestCheckouts = async () => {
+  try {
+    const response = await api.get('/admin/users/guest-checkouts');
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching guest checkout statistics:', error);
+    throw error;
+  }
+};
