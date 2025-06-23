@@ -1,44 +1,110 @@
 import { prisma } from "../../../shared/prisma";
 import { OrderStatus } from "@prisma/client";
 import { AppError } from "../../../utils/errors";
+import logger from "../../../utils/logger";
 
 export const orderServices = {
+    // will use this same function to get the total orders
     async getOrders() {
-        const orders = await prisma.order.findMany({
-            include: {
-                user: true,
-                orderItems: {
-                    include: {
-                        product: true,
+        try {
+            const orders = await prisma.order.findMany({
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            phone: true,
+                            email: true,
+                        },
+                    },
+                    orderItems: true,
+                    payments: {
+                    select: {
+                        id: true,
+                        amount: true,
+                        paymentStatus: true,
+                        paymentMethod: true,
+                    },
                     },
                 },
-            },
-            orderBy: {
-                createdAt: 'desc'
-            }
-        });
-        return orders;
+                orderBy: {
+                    createdAt: 'desc',
+                },
+            });
+
+            const transformedOrders = orders.map(order => ({
+                id: order.id,
+                orderNumber: order.orderNumber,
+                customer: {
+                    id: order.user.id,
+                    firstName: order.user.firstName,
+                    lastName: order.user.lastName,
+                    email: order.user.email,
+                },
+                createdAt: order.createdAt,
+                updatedAt: order.updatedAt,
+                totalAmount: order.totalAmount,
+                status: order.orderStatus,
+                items: order.orderItems.length,
+                payment: {
+                    status: order.payments.length > 0 ? order.payments[0].paymentStatus : 'PROCESSING',
+                    method: order.payments.length > 0 ? order.payments[0].paymentMethod : null,
+                },
+                shippingAddress: order.shippingAddress,
+            }));
+            return transformedOrders;
+        } catch (error) {
+            logger.error(`Error fetching orders: ${error}`);
+            throw new AppError(`Error fetching orders: ${error}`, 500);
+        }
     },
 
     async getOrderById(orderId: string) {
-        const order = await prisma.order.findUnique({
-            where: { id: orderId },
-            include: {
-                user: true,
-                orderItems: {
-                    include: {
-                        product: true,
+        try {
+            const order = await prisma.order.findUnique({
+                where: { id: orderId },
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            phone: true,
+                            email: true,
+                        }
                     },
+                    orderItems: {
+                        include: {
+                            product: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    productImages: true,
+                                }
+                            },
+                        },
+                    },
+                    payments: {
+                        select: {
+                            id: true,
+                            amount: true,
+                            paymentStatus: true,
+                            paymentMethod: true,
+                        }
+                    }
                 },
-                payments: true
-            },
-        });
+            });
 
-        if (!order) {
-            throw new AppError("Order not found", 404);
+            if (!order) {
+                throw new AppError("Order not found", 404);
+            }
+            return order;
+        } catch (error) {
+            logger.error(`Error fetching order: ${error}`);
+            throw new AppError(`Error fetching order: ${error}`, 500);
         }
-
-        return order;
+        
     },
 
     async shipOrder(orderId: string) {
@@ -192,47 +258,193 @@ export const orderServices = {
         return updatedOrder;
     },
 
-    // async updateOrderStatus(orderId: string, orderStatus: OrderStatus) {
-    //     const order = await prisma.order.findUnique({
-    //         where: { id: orderId }
-    //     });
+    async getPendingOrders() {
+        try {
+            const pendingOrders = await prisma.order.findMany({
+            where: {
+                orderStatus: 'PROCESSING',
+            },
+            include: {
+                user: {
+                select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                },
+                },
+                orderItems: true,
+                payments: {
+                select: {
+                    id: true,
+                    amount: true,
+                    paymentStatus: true,
+                },
+                },
+            },
+            orderBy: {
+                createdAt: 'desc',
+            },
+            });
 
-    //     if (!order) {
-    //         throw new AppError("Order not found", 404);
-    //     }
+            const transformedOrders = pendingOrders.map(order => ({
+            id: order.id,
+            orderNumber: order.orderNumber,
+            customer: {
+                id: order.user.id,
+                firstName: order.user.firstName,
+                lastName: order.user.lastName,
+                email: order.user.email,
+            },
+            createdAt: order.createdAt,
+            totalAmount: order.totalAmount,
+            status: order.orderStatus,
+            items: order.orderItems.length,
+            payment: {
+                status: order.payments.length > 0 ? order.payments[0].paymentStatus : 'PROCESSING',
+            },
+            }));
+            return transformedOrders;
+        } catch (error) {
+            logger.error(`Error fetching pending orders: ${error}`);
+            throw new AppError(`Error fetching pending orders: ${error}`, 500);
+        }
+    },
 
-    //     // Handle inventory adjustments based on status changes
-    //     if (order.orderStatus !== orderStatus) {
-    //         // If cancelling an order that wasn't cancelled before
-    //         if (orderStatus === OrderStatus.CANCELLED && order.orderStatus !== OrderStatus.CANCELLED) {
-    //             return this.cancelOrder(orderId);
-    //         }
+    // Get order chart data (date, count)
+    async getOrdersChart() {
+        try {
+            // Calculate the date 90 days ago (default view in frontend)
+            const ninetyDaysAgo = new Date();
+            ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
             
-    //         // If shipping an order
-    //         if (orderStatus === OrderStatus.SHIPPED && order.orderStatus === OrderStatus.PROCESSING) {
-    //             return this.shipOrder(orderId);
-    //         }
+            // Get all orders within the time period
+            const orders = await prisma.order.findMany({
+                where: {
+                    createdAt: {
+                        gte: ninetyDaysAgo
+                    }
+                },
+                select: {
+                    createdAt: true,
+                },
+                orderBy: {
+                    createdAt: 'asc',
+                },
+            });
             
-    //         // If delivering an order
-    //         if (orderStatus === OrderStatus.DELIVERED && order.orderStatus === OrderStatus.SHIPPED) {
-    //             return this.deliverOrder(orderId);
-    //         }
-    //     }
+            // Create a map to store date counts
+            const dateCountMap = new Map();
+            
+            // Initialize the map with all dates in the range
+            const currentDate = new Date();
+            for (let d = new Date(ninetyDaysAgo); d <= currentDate; d.setDate(d.getDate() + 1)) {
+                const dateString = d.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+                dateCountMap.set(dateString, 0);
+            }
+            
+            // Count orders by date
+            orders.forEach(order => {
+                const orderDate = order.createdAt.toISOString().split('T')[0];
+                dateCountMap.set(orderDate, (dateCountMap.get(orderDate) || 0) + 1);
+            });
+            
+            // Convert map to array format expected by frontend
+            const chartData = Array.from(dateCountMap, ([date, count]) => ({
+                date,
+                order: count
+            }));
+            
+            // Sort by date
+            chartData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+            
+            return chartData;
+        } catch (error) {
+            logger.error(`Error fetching order chart data: ${error}`);
+            throw new AppError(`Error fetching order chart data: ${error}`, 500);
+        }
+    },
 
-    //     // Generic update for other cases
-    //     const updatedOrder = await prisma.order.update({
-    //         where: { id: orderId },
-    //         data: { orderStatus },
-    //         include: {
-    //             user: true,
-    //             orderItems: {
-    //                 include: {
-    //                     product: true
-    //                 }
-    //             }
-    //         }
-    //     });
+    async getAvgWeeklyOrders() {
+        try {
+            // Calculate the date 90 days ago (for a reasonable time period)
+            const ninetyDaysAgo = new Date();
+            ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+            
+            // Get all orders within the time period
+            const orders = await prisma.order.findMany({
+                where: {
+                    createdAt: {
+                        gte: ninetyDaysAgo
+                    }
+                },
+                select: {
+                    createdAt: true,
+                },
+            });
+            
+            // Calculate number of weeks (divide by 7 and round up)
+            const days = Math.ceil((Date.now() - ninetyDaysAgo.getTime()) / (1000 * 60 * 60 * 24));
+            const weeks = Math.ceil(days / 7);
+            
+            // Calculate average weekly orders
+            const avgWeeklyOrders = orders.length / weeks;
+            
+            return {
+                avgWeeklyOrders: Math.round(avgWeeklyOrders * 100) / 100, // Round to 2 decimal places
+                totalOrders: orders.length,
+                periodInWeeks: weeks
+            };
+        } catch (error) {
+            logger.error(`Error calculating average weekly orders: ${error}`);
+            throw new AppError(`Error calculating average weekly orders: ${error}`, 500);
+        }
+    },
 
-    //     return updatedOrder;
-    // },
+    async getOrdersThisWeek() {
+        try {
+            // Calculate the start of the current week (Sunday)
+            const today = new Date();
+            const startOfWeek = new Date(today);
+            startOfWeek.setDate(today.getDate() - today.getDay()); // Go to Sunday
+            startOfWeek.setHours(0, 0, 0, 0); // Start of the day
+            
+            // Get orders for this week
+            const orders = await prisma.order.findMany({
+                where: {
+                    createdAt: {
+                        gte: startOfWeek
+                    }
+                },
+                select: {
+                    id: true,
+                    totalAmount: true,
+                    orderStatus: true,
+                },
+            });
+            
+            // Calculate total revenue
+            const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+            
+            // Count orders by status
+            const processingOrders = orders.filter(order => order.orderStatus === OrderStatus.PROCESSING).length;
+            const shippedOrders = orders.filter(order => order.orderStatus === OrderStatus.SHIPPED).length;
+            const deliveredOrders = orders.filter(order => order.orderStatus === OrderStatus.DELIVERED).length;
+            const cancelledOrders = orders.filter(order => order.orderStatus === OrderStatus.CANCELLED).length;
+            
+            return {
+                totalOrders: orders.length,
+                totalRevenue,
+                processingOrders,
+                shippedOrders,
+                deliveredOrders,
+                cancelledOrders,
+                startDate: startOfWeek.toISOString().split('T')[0],
+                endDate: today.toISOString().split('T')[0]
+            };
+        } catch (error) {
+            logger.error(`Error fetching orders this week: ${error}`);
+            throw new AppError(`Error fetching orders this week: ${error}`, 500);
+        }
+    }
 }
