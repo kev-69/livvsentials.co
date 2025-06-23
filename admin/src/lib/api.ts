@@ -346,16 +346,6 @@ export const getTicketById = async (ticketId: string) => {
   }
 };
 
-export const createTicket = async (ticketData: any) => {
-  try {
-    const response = await api.post('/admin/help', ticketData);
-    return response.data.data;
-  } catch (error) {
-    console.error('Error creating ticket:', error);
-    throw error;
-  }
-};
-
 export const addMessage = async (ticketId: string, messageData: any) => {
   try {
     const response = await api.post(`/admin/help/${ticketId}/messages`, messageData);
@@ -395,3 +385,34 @@ export const getTicketStats = async () => {
     throw error;
   }
 };
+
+export const getPlatformSettings = async () => {
+  try {
+    const response = await api.get('/admin/settings');
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching platform settings:', error);
+    throw error;
+  }
+};
+
+export const getPlatformSetting = async (key: string) => {
+  try {
+    const response = await api.get(`/admin/settings/${key}`);
+    return response.data.data;
+  } catch (error) {
+    console.error(`Error fetching setting ${key}:`, error);
+    throw error;
+  }
+};
+
+export const updatePlatformSetting = async (key: string, value: any) => {
+  try {
+    const response = await api.put(`/admin/settings/${key}`, value);
+    return response.data.data;
+  } catch (error) {
+    console.error(`Error updating setting ${key}:`, error);
+    throw error;
+  }
+};
+
