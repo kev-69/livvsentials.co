@@ -57,7 +57,7 @@ const ViewProduct = ({ open, onOpenChange, product, onEdit, onDelete }: ViewProd
             {images.length > 0 ? (
               <div className="relative aspect-square w-full">
                 <img 
-                  src={images[currentImageIndex]?.replace(/[\[\]"']/g, '')} 
+                  src={images[currentImageIndex]} 
                   alt={product.name}
                   className="object-cover w-full h-full rounded-md"
                 />
