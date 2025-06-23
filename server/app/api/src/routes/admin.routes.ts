@@ -8,6 +8,8 @@ import { userRoutes } from "../../../../modules/admin/users/user.module";
 import { productRoutes } from "../../../../modules/admin/products/product.module";
 import { paymentRoutes } from "../../../../modules/admin/payments/payment.module";
 import { orderRoutes } from "../../../../modules/admin/orders/order.module";
+import { helpRoutes } from "../../../../modules/admin/help/help.module";
+import { platformSettingsRoutes } from "../../../../modules/admin/platform/platform.module";
 
 const router = Router();
 
@@ -44,5 +46,17 @@ router.use('/',
     isAdmin,
     orderRoutes
 )
+
+router.use("/help", 
+    validateToken,
+    isAdmin,
+    helpRoutes
+);
+
+router.use("/settings", 
+    validateToken,
+    isAdmin,
+    platformSettingsRoutes
+);
 
 export { router as adminRoutes };
