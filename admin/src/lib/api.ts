@@ -326,72 +326,72 @@ export const getGuestCheckouts = async () => {
   }
 };
 
-export const getTicketStats = async () => {
-  try {
-    const response = await api.get('/admin/help/stats')
-    return response.data.data
-  } catch (error) {
-    console.error('Error fetching help stats');
-    throw error
-  }
-}
-
 export const getTickets = async () => {
   try {
-    const response = await api.get('/admin/help')
-    return response.data.data
+    const response = await api.get('/admin/help');
+    return response.data.data;
   } catch (error) {
-    console.error('Error fetching help tickets');
-    throw error
+    console.error('Error fetching help tickets:', error);
+    throw error;
   }
-}
+};
 
 export const getTicketById = async (ticketId: string) => {
   try {
-    const response = await api.get(`/admin/help/${ticketId}`)
-    return response.data.data
+    const response = await api.get(`/admin/help/${ticketId}`);
+    return response.data.data;
   } catch (error) {
-    console.error('Error fetching ticket');
-    throw error
+    console.error('Error fetching ticket details:', error);
+    throw error;
   }
-}
+};
 
 export const createTicket = async (ticketData: any) => {
   try {
-    const response = await api.post('/admin/help/', ticketData)
-    return response.data.data
+    const response = await api.post('/admin/help', ticketData);
+    return response.data.data;
   } catch (error) {
-    console.error('Error creating ticket');
-    throw error
+    console.error('Error creating ticket:', error);
+    throw error;
   }
-}
+};
 
 export const addMessage = async (ticketId: string, messageData: any) => {
   try {
-    const response = await api.post(`/admin/help/${ticketId}`, messageData)
-    return response.data.data
+    const response = await api.post(`/admin/help/${ticketId}/messages`, messageData);
+    return response.data.data;
   } catch (error) {
-    console.error('Error sending message');
-    throw error
+    console.error('Error sending message:', error);
+    throw error;
   }
-}
+};
 
-export const updateTicketStatus = async (ticketId: string, updateData: any) => {
+export const updateTicketStatus = async (ticketId: string, statusData: any) => {
   try {
-    const response = await api.patch(`/admin/help/${ticketId}`, updateData)
-    return response.data.data
+    const response = await api.patch(`/admin/help/${ticketId}/status`, statusData);
+    return response.data.data;
   } catch (error) {
-    console.error('Error updating ticket status');
-    throw error
+    console.error('Error updating ticket status:', error);
+    throw error;
   }
-}
+};
 
-export const updateTicketPriority = async (ticketId: string, updateData: any) => {
+export const updateTicketPriority = async (ticketId: string, priorityData: any) => {
   try {
-    const response = await api.patch(`/admin/help/${ticketId}`, updateData)
-    return response.data.data
+    const response = await api.patch(`/admin/help/${ticketId}/priority`, priorityData);
+    return response.data.data;
   } catch (error) {
-    console.error('Error updating ticket priority status');
-    throw error
+    console.error('Error updating ticket priority:', error);
+    throw error;
   }
-}
+};
+
+export const getTicketStats = async () => {
+  try {
+    const response = await api.get('/admin/help/stats');
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching ticket statistics:', error);
+    throw error;
+  }
+};
