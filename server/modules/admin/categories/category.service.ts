@@ -1,6 +1,7 @@
 import { prisma } from "../../../shared/prisma";
 
-export const createCategory = async (name: string, description: string) => {
+export const categoryService = {
+    async createCategory (name: string, description: string) {
         // check if category already exists
         const existingCategory = await prisma.category.findUnique({
             where: { name },
@@ -22,22 +23,14 @@ export const createCategory = async (name: string, description: string) => {
         });
         
         return category;
-}
+    },
 
-export const getCategories = async () => {
-    try {
+    async getCategories () {
         const categories = await prisma.category.findMany();
         return categories;
-    } catch (error) {
-        throw new Error(`Error fetching categories: ${error}`);
-    }
-}
+    },
 
-export const updateCategory = async (categoryId: string, categoryData: {
-    name?: string;
-    description?: string;
-}) => {
-    try {
+    async updateCategory(categoryId: string, categoryData: { name?: string; description?: string}) {
         const category = await prisma.category.update({
             where: { id: categoryId },
             data: {
@@ -46,18 +39,12 @@ export const updateCategory = async (categoryId: string, categoryData: {
             },
         });
         return category;
-    } catch (error) {
-        throw new Error(`Error updating category: ${error}`);
-    }
-}
+    },
 
-export const deleteCategory = async (categoryId: string) => {
-    try {
+    async deleteCategory(categoryId: string) {
         const category = await prisma.category.delete({
             where: { id: categoryId },
         });
         return category;
-    } catch (error) {
-        throw new Error(`Error deleting category: ${error}`);
     }
 }
