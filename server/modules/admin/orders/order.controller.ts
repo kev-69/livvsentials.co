@@ -54,22 +54,41 @@ export const orderController = {
         }
     },
 
-    // updateOrderStatus: async (req: Request, res: Response) => {
-    //     try {
-    //         const { orderId } = req.params;
-    //         const { orderStatus } = req.body;
+    getPendingOrders: async (req: Request, res: Response) => {
+        try {
+            const pendingOrders = await orderServices.getPendingOrders()
+            res.status(200).json(successResponse("Pending order fetched successfully", pendingOrders))
+        } catch (error) {
+            handleControllerError(error, res)
+        }
+    },
 
-    //         // Validate that orderStatus is a valid enum value
-    //         if (!Object.values(OrderStatus).includes(orderStatus)) {
-    //             return res.status(400).json(errorResponse("Invalid order status"));
-    //         }
+    getOrdersChart: async (req: Request, res: Response) => {
+        try {
+            const stats = await orderServices.getOrdersChart();
+            res.status(200).json(successResponse("Order statistics retrieved successfully", stats));
+        } catch (error) {
+            handleControllerError(error, res);
+        }
+    },
 
-    //         const updatedOrder = await orderServices.updateOrderStatus(orderId, orderStatus);
-    //         res.status(200).json(successResponse(`Order status updated to ${orderStatus}`, updatedOrder));
-    //     } catch (error) {
-    //         handleControllerError(error, res);
-    //     }
-    // },
+    getAvgWeeklyOrders: async (req: Request, res: Response) => {
+        try {
+            const weeklyOrders = await orderServices.getAvgWeeklyOrders();
+            res.status(200).json(successResponse("Average weekly orders retrieved successfully", weeklyOrders));
+        } catch (error) {
+            handleControllerError(error, res);
+        }
+    },
+
+    getOrdersThisWeek: async (req: Request, res: Response) => {
+        try {
+            const weeklyOrders = await orderServices.getOrdersThisWeek();
+            res.status(200).json(successResponse("Weekly orders retrieved successfully", weeklyOrders));
+        } catch (error) {
+            handleControllerError(error, res);
+        }
+    }
 };
 
 // Helper function for consistent error handling
