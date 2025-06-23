@@ -12,7 +12,9 @@ import {
   MoreHorizontal,
   Loader2,
   Search,
-  AlertCircle
+  AlertCircle,
+  Eye,
+  Printer
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -23,7 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { fetchOrders } from "@/lib/api";
+import { fetchOrders, fetchOrderDetails } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { 
   Select, 
@@ -41,6 +43,9 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import PrintInvoiceModal from "@/components/modals/PrintInvoiceModal";
+import ViewOrder from "@/components/modals/ViewOrder";
+import { toast } from "sonner";
 
 // Order interface
 interface Order {
@@ -98,7 +103,13 @@ const OrdersTable = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState<string>("date-desc");
+  const [viewOrderOpen, setViewOrderOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [loadingOrderDetails, setLoadingOrderDetails] = useState(false);
   const itemsPerPage = 10;
+  const [printInvoiceOpen, setPrintInvoiceOpen] = useState(false);
+  const [orderForInvoice, setOrderForInvoice] = useState<any>(null);
+
 
   useEffect(() => {
     const loadOrders = async () => {
@@ -117,6 +128,34 @@ const OrdersTable = () => {
 
     loadOrders();
   }, []);
+
+  const handleViewOrder = async (orderId: string) => {
+    try {
+      setLoadingOrderDetails(true);
+      const orderDetails = await fetchOrderDetails(orderId);
+      setSelectedOrder(orderDetails);
+      setViewOrderOpen(true);
+    } catch (err) {
+      console.error("Failed to fetch order details:", err);
+      toast.error("Failed to load order details. Please try again.");
+    } finally {
+      setLoadingOrderDetails(false);
+    }
+  };
+
+  const handlePrintInvoice = async (orderId: string) => {
+    try {
+      setLoadingOrderDetails(true);
+      const orderDetails = await fetchOrderDetails(orderId);
+      setOrderForInvoice(orderDetails);
+      setPrintInvoiceOpen(true);
+    } catch (err) {
+      console.error("Failed to fetch order details for invoice:", err);
+      toast.error("Failed to load order details for invoice. Please try again.");
+    } finally {
+      setLoadingOrderDetails(false);
+    }
+  };
 
   // Filter and sort orders
   const filteredOrders = orders.filter(order => {
@@ -154,168 +193,189 @@ const OrdersTable = () => {
   );
 
   return (
-    <Card className="h-full">
-      <CardHeader className="pb-2">
-        <CardTitle>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-2">
-            <h2 className="text-lg font-medium dark:text-white">All Orders</h2>
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              <div className="relative w-full sm:w-64">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search orders..."
-                  className="w-full pl-8"
-                  value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                />
-              </div>
-              <div className="flex gap-2 w-full sm:w-auto">
-                <Select 
-                  value={statusFilter} 
-                  onValueChange={(value) => {
-                    setStatusFilter(value);
-                    setCurrentPage(1);
-                  }}
-                >
-                  <SelectTrigger className="w-[130px]">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="PROCESSING">Processing</SelectItem>
-                    <SelectItem value="SHIPPED">Shipped</SelectItem>
-                    <SelectItem value="DELIVERED">Delivered</SelectItem>
-                    <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select 
-                  value={sortBy} 
-                  onValueChange={(value) => {
-                    setSortBy(value);
-                  }}
-                >
-                  <SelectTrigger className="w-[130px]">
-                    <SelectValue placeholder="Sort By" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="date-desc">Newest First</SelectItem>
-                    <SelectItem value="date-asc">Oldest First</SelectItem>
-                    <SelectItem value="amount-desc">Highest Amount</SelectItem>
-                    <SelectItem value="amount-asc">Lowest Amount</SelectItem>
-                  </SelectContent>
-                </Select>
+    <>
+      <Card className="h-full">
+        <CardHeader className="pb-2">
+          <CardTitle>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-2">
+              <h2 className="text-lg font-medium dark:text-white">All Orders</h2>
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search orders..."
+                    className="w-full pl-8"
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                  />
+                </div>
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <Select 
+                    value={statusFilter} 
+                    onValueChange={(value) => {
+                      setStatusFilter(value);
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <SelectTrigger className="w-[130px]">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      <SelectItem value="PROCESSING">Processing</SelectItem>
+                      <SelectItem value="SHIPPED">Shipped</SelectItem>
+                      <SelectItem value="DELIVERED">Delivered</SelectItem>
+                      <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select 
+                    value={sortBy} 
+                    onValueChange={(value) => {
+                      setSortBy(value);
+                    }}
+                  >
+                    <SelectTrigger className="w-[130px]">
+                      <SelectValue placeholder="Sort By" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="date-desc">Newest First</SelectItem>
+                      <SelectItem value="date-asc">Oldest First</SelectItem>
+                      <SelectItem value="amount-desc">Highest Amount</SelectItem>
+                      <SelectItem value="amount-asc">Lowest Amount</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
-          </div>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        
-        {loading ? (
-          <div className="flex justify-center items-center h-[250px]">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <span className="ml-2">Loading orders...</span>
-          </div>
-        ) : (
-          <>
-            <div className="overflow-y-auto max-h-[400px]">
-              <Table>
-                <TableHeader className="sticky top-0 dark:bg-gray-800 z-10">
-                  <TableRow>
-                    <TableHead>Order ID</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedOrders.length === 0 ? (
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          
+          {loading ? (
+            <div className="flex justify-center items-center h-[250px]">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <span className="ml-2">Loading orders...</span>
+            </div>
+          ) : (
+            <>
+              <div className="overflow-y-auto max-h-[400px]">
+                <Table>
+                  <TableHeader className="sticky top-0 dark:bg-gray-800 z-10">
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
-                        No orders found.
-                      </TableCell>
+                      <TableHead>Order ID</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Total</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-center">Actions</TableHead>
                     </TableRow>
-                  ) : (
-                    paginatedOrders.map((order) => (
-                      <TableRow key={order.id}>
-                        <TableCell className="font-medium">{order.orderNumber}</TableCell>
-                        <TableCell>{order.customer.firstName} {order.customer.lastName}</TableCell>
-                        <TableCell>{formatDate(order.createdAt)}</TableCell>
-                        <TableCell>{formatCurrency(order.totalAmount)}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={getStatusColor(order.status)}>
-                            {order.status.toLowerCase().replace(/_/g, ' ')}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Open menu</span>
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuItem>View details</DropdownMenuItem>
-                              <DropdownMenuItem>Print invoice</DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedOrders.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                          No orders found.
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+                    ) : (
+                      paginatedOrders.map((order) => (
+                        <TableRow key={order.id}>
+                          <TableCell className="font-medium">{order.orderNumber}</TableCell>
+                          <TableCell>{order.customer.firstName} {order.customer.lastName}</TableCell>
+                          <TableCell>{formatDate(order.createdAt)}</TableCell>
+                          <TableCell>{formatCurrency(order.totalAmount)}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={getStatusColor(order.status)}>
+                              {order.status.toLowerCase().replace(/_/g, ' ')}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Button variant="ghost" className="h-8 w-8 p-0" onClick={() => handleViewOrder(order.id)}>
+                              <Eye className="h-4 w-4" />
+                              View
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
 
-            {totalPages > 1 && (
-              <Pagination className="mt-4">
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious 
-                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                      className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                    />
-                  </PaginationItem>
-                  
-                  {Array.from({ length: totalPages }).map((_, i) => (
-                    <PaginationItem key={i}>
-                      <PaginationLink
-                        onClick={() => setCurrentPage(i + 1)}
-                        isActive={currentPage === i + 1}
-                      >
-                        {i + 1}
-                      </PaginationLink>
+              {totalPages > 1 && (
+                <Pagination className="mt-4">
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
                     </PaginationItem>
-                  ))}
-                  
-                  <PaginationItem>
-                    <PaginationNext 
-                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            )}
-          </>
-        )}
-      </CardContent>
-    </Card>
+                    
+                    {Array.from({ length: totalPages }).map((_, i) => (
+                      <PaginationItem key={i}>
+                        <PaginationLink
+                          onClick={() => setCurrentPage(i + 1)}
+                          isActive={currentPage === i + 1}
+                        >
+                          {i + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* View Order Modal */}
+      {selectedOrder && (
+        <ViewOrder 
+          open={viewOrderOpen} 
+          onOpenChange={setViewOrderOpen} 
+          order={selectedOrder}
+        />
+      )}
+
+      {/* Loading Overlay for Order Details */}
+      {loadingOrderDetails && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-background p-6 rounded-lg shadow-lg flex items-center">
+            <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
+            <span>Loading order details...</span>
+          </div>
+        </div>
+      )}
+
+      {/* Print Invoice Modal */}
+      {orderForInvoice && (
+        <PrintInvoiceModal
+          open={printInvoiceOpen}
+          onOpenChange={setPrintInvoiceOpen}
+          order={orderForInvoice}
+        />
+      )}
+    </>
   );
 };
 
