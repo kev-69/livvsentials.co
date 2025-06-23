@@ -1,4 +1,5 @@
 import express from 'express'
+import path from 'path'
 import cors from 'cors'
 import morgan from 'morgan'
 import dotenv from 'dotenv'
@@ -21,6 +22,8 @@ app.use(morgan('dev'))
 
 // routes
 app.use('/api/v1', userRoutes)
+// Serve static files from the uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/admin', adminRoutes)
 
 // start server
