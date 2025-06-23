@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,22 +10,23 @@ import { toast } from 'sonner';
 import { 
   User, 
   Lock, 
-  Upload, 
   Eye,
   EyeOff,
+  Loader2,
 } from 'lucide-react';
+import { updateProfile, changePassword } from '@/services/auth';
 
 export const SettingsTab = () => {
-  const { admin } = useAuth();
+  const { admin, refreshAdminData } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
   // Profile settings state
   const [profileForm, setProfileForm] = useState({
-    firstName: admin?.firstName || '',
-    lastName: admin?.lastName || '',
-    email: admin?.email || '',
+    firstName: '',
+    lastName: '',
+    email: '',
   });
 
   // Password settings state
@@ -34,6 +35,17 @@ export const SettingsTab = () => {
     newPassword: '',
     confirmPassword: '',
   });
+
+  // Update form when admin data changes
+  useEffect(() => {
+    if (admin) {
+      setProfileForm({
+        firstName: admin.firstName || '',
+        lastName: admin.lastName || '',
+        email: admin.email || '',
+      });
+    }
+  }, [admin]);
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setProfileForm({
@@ -49,37 +61,77 @@ export const SettingsTab = () => {
     });
   };
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Basic validation
+    if (!profileForm.firstName || !profileForm.lastName || !profileForm.email) {
+      toast.error('All profile fields are required');
+      return;
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(profileForm.email)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+    
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await updateProfile(profileForm);
       toast.success('Profile updated successfully');
+      
+      // Refresh admin data in context
+      if (refreshAdminData) {
+        await refreshAdminData();
+      }
+    } catch (error: any) {
+      console.error('Failed to update profile:', error);
+      toast.error(error.response?.data?.message || 'Failed to update profile');
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
-  const handleChangePassword = (e: React.FormEvent) => {
+  const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validation
+    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+      toast.error('All password fields are required');
+      return;
+    }
     
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
       toast.error('New passwords do not match');
       return;
     }
     
+    if (passwordForm.newPassword.length < 8) {
+      toast.error('New password must be at least 8 characters long');
+      return;
+    }
+    
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      toast.success('Password changed successfully');
-      setIsLoading(false);
+    try {
+      const message = await changePassword(passwordForm.currentPassword, passwordForm.newPassword);
+      toast.success(message || 'Password changed successfully');
+      
+      // Reset the form
       setPasswordForm({
         currentPassword: '',
         newPassword: '',
         confirmPassword: '',
       });
-    }, 1000);
+    } catch (error: any) {
+      console.error('Failed to change password:', error);
+      toast.error(error.response?.data?.message || 'Failed to change password');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getInitials = () => {
@@ -129,21 +181,6 @@ export const SettingsTab = () => {
                       <AvatarImage src={`https://ui-avatars.com/api/?name=${profileForm.firstName}+${profileForm.lastName}&background=random&size=100`} />
                       <AvatarFallback className="text-lg">{getInitials()}</AvatarFallback>
                     </Avatar>
-                    <div className="flex-grow text-center sm:text-left">
-                      <h3 className="text-lg font-medium dark:text-white">Profile Picture</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                        Upload a new profile picture
-                      </p>
-                      <div className="flex gap-2 justify-center sm:justify-start">
-                        <Button variant="outline" size="sm" className="h-9">
-                          <Upload className="h-4 w-4 mr-2" />
-                          Upload
-                        </Button>
-                        <Button variant="outline" size="sm" className="h-9">
-                          Remove
-                        </Button>
-                      </div>
-                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -154,6 +191,7 @@ export const SettingsTab = () => {
                         name="firstName"
                         value={profileForm.firstName}
                         onChange={handleProfileChange}
+                        required
                       />
                     </div>
                     <div className="space-y-2">
@@ -163,6 +201,7 @@ export const SettingsTab = () => {
                         name="lastName"
                         value={profileForm.lastName}
                         onChange={handleProfileChange}
+                        required
                       />
                     </div>
                   </div>
@@ -175,12 +214,22 @@ export const SettingsTab = () => {
                       type="email"
                       value={profileForm.email}
                       onChange={handleProfileChange}
+                      required
                     />
                   </div>
 
                   <div className="flex justify-end">
-                    <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
-                      {isLoading ? 'Saving...' : 'Save Changes'}
+                    <Button 
+                      type="submit" 
+                      disabled={isLoading} 
+                      className="w-full sm:w-auto"
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : 'Save Changes'}
                     </Button>
                   </div>
                 </form>
@@ -207,6 +256,7 @@ export const SettingsTab = () => {
                         type={showPassword ? "text" : "password"}
                         value={passwordForm.currentPassword}
                         onChange={handlePasswordChange}
+                        required
                       />
                       <button
                         type="button"
@@ -227,6 +277,8 @@ export const SettingsTab = () => {
                         type={showPassword ? "text" : "password"}
                         value={passwordForm.newPassword}
                         onChange={handlePasswordChange}
+                        required
+                        minLength={8}
                       />
                       <button
                         type="button"
@@ -247,6 +299,8 @@ export const SettingsTab = () => {
                         type={showPassword ? "text" : "password"}
                         value={passwordForm.confirmPassword}
                         onChange={handlePasswordChange}
+                        required
+                        minLength={8}
                       />
                       <button
                         type="button"
@@ -259,8 +313,17 @@ export const SettingsTab = () => {
                   </div>
 
                   <div className="flex justify-end">
-                    <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
-                      {isLoading ? 'Changing Password...' : 'Change Password'}
+                    <Button 
+                      type="submit" 
+                      disabled={isLoading} 
+                      className="w-full sm:w-auto"
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Changing Password...
+                        </>
+                      ) : 'Change Password'}
                     </Button>
                   </div>
                 </form>
@@ -322,21 +385,6 @@ export const SettingsTab = () => {
                         <AvatarImage src={`https://ui-avatars.com/api/?name=${profileForm.firstName}+${profileForm.lastName}&background=random&size=100`} />
                         <AvatarFallback className="text-lg">{getInitials()}</AvatarFallback>
                       </Avatar>
-                      <div className="flex-grow">
-                        <h3 className="text-lg font-medium dark:text-white">Profile Picture</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                          Upload a new profile picture
-                        </p>
-                        <div className="flex gap-3">
-                          <Button variant="outline" size="sm">
-                            <Upload className="h-4 w-4 mr-2" />
-                            Upload
-                          </Button>
-                          <Button variant="outline" size="sm">
-                            Remove
-                          </Button>
-                        </div>
-                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -348,6 +396,7 @@ export const SettingsTab = () => {
                           value={profileForm.firstName}
                           onChange={handleProfileChange}
                           className="max-w-md"
+                          required
                         />
                       </div>
                       <div className="space-y-2">
@@ -358,6 +407,7 @@ export const SettingsTab = () => {
                           value={profileForm.lastName}
                           onChange={handleProfileChange}
                           className="max-w-md"
+                          required
                         />
                       </div>
                     </div>
@@ -372,13 +422,22 @@ export const SettingsTab = () => {
                           value={profileForm.email}
                           onChange={handleProfileChange}
                           className="max-w-md"
+                          required
                         />
                       </div>
                     </div>
 
                     <div className="flex justify-end pt-4">
-                      <Button type="submit" disabled={isLoading}>
-                        {isLoading ? 'Saving...' : 'Save Changes'}
+                      <Button 
+                        type="submit" 
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Saving...
+                          </>
+                        ) : 'Save Changes'}
                       </Button>
                     </div>
                   </form>
@@ -405,6 +464,7 @@ export const SettingsTab = () => {
                           type={showPassword ? "text" : "password"}
                           value={passwordForm.currentPassword}
                           onChange={handlePasswordChange}
+                          required
                         />
                         <button
                           type="button"
@@ -425,6 +485,8 @@ export const SettingsTab = () => {
                           type={showPassword ? "text" : "password"}
                           value={passwordForm.newPassword}
                           onChange={handlePasswordChange}
+                          required
+                          minLength={8}
                         />
                         <button
                           type="button"
@@ -445,6 +507,8 @@ export const SettingsTab = () => {
                           type={showPassword ? "text" : "password"}
                           value={passwordForm.confirmPassword}
                           onChange={handlePasswordChange}
+                          required
+                          minLength={8}
                         />
                         <button
                           type="button"
@@ -457,8 +521,16 @@ export const SettingsTab = () => {
                     </div>
 
                     <div className="flex justify-end pt-4">
-                      <Button type="submit" disabled={isLoading}>
-                        {isLoading ? 'Changing Password...' : 'Change Password'}
+                      <Button 
+                        type="submit" 
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Changing Password...
+                          </>
+                        ) : 'Change Password'}
                       </Button>
                     </div>
                   </form>
