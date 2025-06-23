@@ -23,7 +23,7 @@ const ProductCard = ({ product, onView, onEdit }: ProductCardProps) => {
     <Card className="h-full overflow-hidden hover:shadow-md transition-shadow">
       <div className="relative aspect-square">
         <img 
-          src={product.productImages?.[0]?.replace(/[\[\]"']/g, '') || '/placeholder-product.jpg'} 
+          src={product.productImages?.[0] || '/placeholder-product.jpg'} 
           alt={product.name}
           className="object-cover w-full h-[300px]"
         />
