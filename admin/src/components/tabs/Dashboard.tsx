@@ -2,8 +2,9 @@ import TotalRevenue from '@/components/cards/TotalRevenue';
 import AvgWeeklyOrders from '@/components/cards/AvgWeeklyOrders';
 import TotalCustomers from '@/components/cards/TotalCustomers';
 import OrderChart from '@/components/charts/OrderChart';
-import ActivityFeed from '@/components/cards/ActivityFeed';
+// import ActivityFeed from '@/components/cards/ActivityFeed';
 import TopSelling from '@/components/tables/TopSelling';
+import TopSeller from '../cards/TopSeller';
 
 const DashboardTab = () => {
   return (
@@ -33,7 +34,7 @@ const DashboardTab = () => {
         
         {/* Activity Feed - Takes 1/3 of the width */}
         <div>
-          <ActivityFeed />
+          <TopSeller />
         </div>
       </div>
     </div>
