@@ -93,6 +93,21 @@ export const productController = {
         }
     },
 
+    getTopSellingProduct: async (req: Request, res: Response) => {
+        try {
+            const product = await productService.getTopSellingProduct();
+            res.status(200).json(successResponse("Top selling product retrieved successfully", product));
+        } catch (error) {
+            if (error instanceof AppError) {
+                res.status(error.statusCode).json(errorResponse(error.message));
+            } else if (error instanceof Error) {
+                res.status(500).json(errorResponse(error.message));
+            } else {
+                res.status(500).json(errorResponse('Internal server error'));
+            }
+        }
+    },
+
     topSellingProducts: async (req: Request, res: Response) => {
         try {
             const products = await productService.getTopSellingProducts();
