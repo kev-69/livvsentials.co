@@ -24,7 +24,7 @@ interface AppearanceSettingsProps {
 }
 
 const CLOUDINARY_UPLOAD_PRESET = 'livssentials';
-const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
+const CLOUDINARY_CLOUD_NAME = 'dxykzipbv';
 const commonFonts = [
   { name: 'Inter', value: 'Inter' },
   { name: 'Roboto', value: 'Roboto' },
@@ -229,18 +229,6 @@ const AppearanceSettings = ({ settings, onChange }: AppearanceSettingsProps) => 
               Used for headings and titles throughout your site
             </p>
           </div>
-        </div>
-        
-        {/* Font preview */}
-        <div className="mt-4 p-4 border rounded-md">
-          <h4 className="text-sm font-medium mb-2">Font Preview</h4>
-          <h2 style={{ fontFamily: settings.fonts?.heading || 'Inter' }} className="text-xl font-bold mb-2">
-            This is a heading in {settings.fonts?.heading || 'Inter'}
-          </h2>
-          <p style={{ fontFamily: settings.fonts?.body || 'Roboto' }} className="text-sm">
-            This is body text in {settings.fonts?.body || 'Roboto'}. The quick brown fox jumps over the lazy dog.
-            This text demonstrates how your content will appear throughout your website.
-          </p>
         </div>
       </div>
 
