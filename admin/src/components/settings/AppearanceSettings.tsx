@@ -318,7 +318,7 @@ const AppearanceSettings = ({ settings, onChange }: AppearanceSettingsProps) => 
 
         {/* Preview section */}
         <div className="mt-6 border dark:border-gray-700 rounded-lg p-6">
-          <h3 className="text-lg font-medium mb-4 dark:text-white">Theme Preview</h3>
+          <h3 className="text-lg font-medium mb-4 dark:text-white">Theme and Font Preview</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Light mode preview */}
@@ -328,13 +328,13 @@ const AppearanceSettings = ({ settings, onChange }: AppearanceSettingsProps) => 
               <div style={{ color: colors.textColor }}>
                 <h5 
                   className="font-bold" 
-                  style={{ color: colors.textColor, fontFamily: settings.fonts?.heading || 'Inter' }}
+                  style={{ color: colors.textColor, fontFamily: settings.fonts?.heading }}
                 >
                   Sample Heading
                 </h5>
                 <p 
                   className="text-sm mb-3"
-                  style={{ fontFamily: settings.fonts?.body || 'Roboto' }}
+                  style={{ fontFamily: settings.fonts?.body }}
                 >
                   This is how your text will appear on light backgrounds.
                 </p>
@@ -361,13 +361,13 @@ const AppearanceSettings = ({ settings, onChange }: AppearanceSettingsProps) => 
               <div style={{ color: colors.darkText }}>
                 <h5 
                   className="font-bold" 
-                  style={{ color: colors.darkText, fontFamily: settings.fonts?.heading || 'Inter' }}
+                  style={{ color: colors.darkText, fontFamily: settings.fonts?.heading }}
                 >
                   Sample Heading
                 </h5>
                 <p 
                   className="text-sm mb-3"
-                  style={{ fontFamily: settings.fonts?.body || 'Roboto' }}
+                  style={{ fontFamily: settings.fonts?.body }}
                 >
                   This is how your text will appear on dark backgrounds.
                 </p>
