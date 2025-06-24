@@ -343,6 +343,7 @@ model Order {
     totalAmount     Float
     orderStatus     OrderStatus @default(PROCESSING)
     shippingAddress String?
+    guestCheckout   Boolean @default(false)
     products        Product[]
     orderItems      OrderItem[]
     payments        Payment[]
