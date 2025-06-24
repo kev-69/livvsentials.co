@@ -408,7 +408,7 @@ export const getPlatformSetting = async (key: string) => {
 
 export const updatePlatformSetting = async (key: string, value: any) => {
   try {
-    const response = await api.put(`/admin/settings/${key}`, value);
+    const response = await api.patch(`/admin/settings/${key}`, value);
     return response.data.data;
   } catch (error) {
     console.error(`Error updating setting ${key}:`, error);
