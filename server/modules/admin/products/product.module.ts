@@ -34,6 +34,19 @@ router.get('/products',
     productController.getProducts
 );
 
+/**
+ * @route GET /api/admin/product/top-seller
+ * @desc Get the top selling product
+ * @access Admin only
+*/
+router.get('/products/top-seller',
+    productController.getTopSellingProduct
+);
+
+/** * @route GET /api/admin/products/top-selling
+ * @desc Get the top selling products
+ * @access Admin only
+*/
 router.get('/products/top-selling',
     productController.topSellingProducts
 )
