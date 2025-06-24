@@ -363,7 +363,7 @@ const AppearanceSettings = ({ settings, onChange }: AppearanceSettingsProps) => 
                   className="font-bold" 
                   style={{ color: colors.darkText, fontFamily: settings.fonts?.heading }}
                 >
-                  Sample Heading
+                  SAMPLE HEADER
                 </h5>
                 <p 
                   className="text-sm mb-3"
