@@ -193,6 +193,60 @@ export const productService = {
         }
     },
 
+    async getTopSellingProduct() {
+        try {
+            // Get the product with the most order items
+            const product = await prisma.product.findFirst({
+                orderBy: {
+                    orderItems: {
+                        _count: 'desc'
+                    },
+                },
+                include: {
+                    category: {
+                        select: {
+                            name: true,
+                        },
+                    },
+                    orderItems: {
+                        select: {
+                            quantity: true,
+                        },
+                    },
+                },
+            });
+
+            // If no product is found, return null
+            if (!product) {
+                return null;
+            }
+
+            // Calculate total units sold
+            const totalSold = product.orderItems.reduce(
+                (sum, item) => sum + item.quantity, 
+                0
+            );
+
+            // Transform product data to match the interface expected by the frontend
+            const transformedProduct = {
+                id: product.id,
+                name: product.name,
+                slug: product.slug,
+                price: product.price,
+                productImages: product.productImages.map(url => 
+                    typeof url === 'string' ? url.replace(/[\[\]"']/g, '') : url
+                ),
+                totalSold: totalSold,
+                category: product.category.name
+            };
+
+            return transformedProduct;
+        } catch (error) {
+            logger.error(`Error fetching top selling product: ${error}`);
+            throw new Error(`Error fetching top selling product: ${error}`);
+        }
+    },
+
     async getTopSellingProducts (limit: number = 10) {
         try {
             const products = await prisma.product.findMany({
