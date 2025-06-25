@@ -96,7 +96,7 @@ const QuestionsCard = ({
           </div>
         </div>
         
-        <div className="border rounded-md">
+        <div className="overflow-y-auto max-h-[400px]">
           <Table>
             <TableHeader>
               <TableRow>
