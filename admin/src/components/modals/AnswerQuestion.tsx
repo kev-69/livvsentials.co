@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Loader2 } from 'lucide-react';
 import type { Question } from '@/components/tabs/sub-tabs/Reviews';
 
 interface AnswerQuestionProps {
@@ -19,6 +20,7 @@ interface AnswerQuestionProps {
   answerText: string;
   setAnswerText: (text: string) => void;
   onSubmit: () => void;
+  isSubmitting?: boolean;
 }
 
 const AnswerQuestion = ({ 
@@ -27,7 +29,8 @@ const AnswerQuestion = ({
   onOpenChange,
   answerText,
   setAnswerText,
-  onSubmit
+  onSubmit,
+  isSubmitting = false
 }: AnswerQuestionProps) => {
   if (!question) return null;
   
@@ -66,6 +69,7 @@ const AnswerQuestion = ({
               value={answerText}
               onChange={(e) => setAnswerText(e.target.value)}
               rows={5}
+              disabled={isSubmitting}
             />
           </div>
         </div>
@@ -74,11 +78,22 @@ const AnswerQuestion = ({
           <Button 
             variant="outline" 
             onClick={() => onOpenChange(false)}
+            disabled={isSubmitting}
           >
             Cancel
           </Button>
-          <Button onClick={onSubmit}>
-            {question.answer ? "Update Answer" : "Post Answer"}
+          <Button 
+            onClick={onSubmit}
+            disabled={isSubmitting || !answerText.trim()}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              question.answer ? "Update Answer" : "Post Answer"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
