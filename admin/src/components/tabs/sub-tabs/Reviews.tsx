@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Tabs, 
   TabsContent, 
@@ -6,7 +6,17 @@ import {
   TabsTrigger 
 } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { MessageSquare, Star } from 'lucide-react';
+import { MessageSquare, Star, Loader2 } from 'lucide-react';
+import { 
+  fetchReviews, 
+  fetchQuestions, 
+  fetchReviewStats, 
+  updateReviewStatus,
+  replyToReview, 
+  deleteReview,
+  answerQuestion,
+  deleteQuestion
+} from '@/lib/api';
 
 // Import card components
 import ReviewsCard from '@/components/cards/Reviews';
@@ -23,13 +33,15 @@ export interface Review {
   id: string;
   productId: string;
   productName: string;
+  productSlug: string;
   customerId: string;
   customerName: string;
-  customerAvatar: string | null;
+  customerEmail: string;
+  customerAvatar?: string | null;
   rating: number;
   title: string;
   content: string;
-  status: 'published' | 'pending' | 'hidden';
+  status: string;
   createdAt: string;
   updatedAt: string;
   reply: string | null;
@@ -40,104 +52,41 @@ export interface Question {
   id: string;
   productId: string;
   productName: string;
+  productSlug: string;
   customerId: string;
   customerName: string;
-  customerAvatar: string | null;
+  customerEmail: string;
+  customerAvatar?: string | null;
   question: string;
-  status: 'answered' | 'pending';
+  status: string;
   createdAt: string;
   updatedAt: string;
   answer: string | null;
 }
 
-// Mock data for reviews
-const mockReviews: Review[] = [
-  {
-    id: 'rev-001',
-    productId: 'prod-001',
-    productName: 'Premium Leather Handbag',
-    customerId: 'cust-101',
-    customerName: 'Emma Thompson',
-    customerAvatar: null,
-    rating: 5,
-    title: 'Absolutely stunning quality!',
-    content: 'This handbag exceeded all my expectations. The leather is buttery soft, the stitching is perfect, and it looks even better in person. Worth every penny!',
-    status: 'published',
-    createdAt: '2025-06-10T14:30:00Z',
-    updatedAt: '2025-06-10T14:30:00Z',
-    reply: null,
-    images: ['https://placehold.co/100x100/png']
-  },
-  {
-    id: 'rev-002',
-    productId: 'prod-002',
-    productName: 'Organic Cotton T-Shirt',
-    customerId: 'cust-102',
-    customerName: 'James Wilson',
-    customerAvatar: null,
-    rating: 2,
-    title: 'Disappointing quality',
-    content: 'The fabric feels cheap and the stitching started to come apart after just one wash. Not worth the price at all.',
-    status: 'pending',
-    createdAt: '2025-06-15T09:45:00Z',
-    updatedAt: '2025-06-15T09:45:00Z',
-    reply: null,
-    images: []
-  },
-  {
-    id: 'rev-003',
-    productId: 'prod-003',
-    productName: 'Stainless Steel Water Bottle',
-    customerId: 'cust-103',
-    customerName: 'Sophia Garcia',
-    customerAvatar: null,
-    rating: 4,
-    title: 'Great bottle but lid could be better',
-    content: 'I love the bottle - it keeps my water cold for hours. The only issue is the lid design could be improved for easier cleaning.',
-    status: 'published',
-    createdAt: '2025-06-05T11:20:00Z',
-    updatedAt: '2025-06-07T16:45:00Z',
-    reply: 'Thank you for your feedback! We\'re working on an improved lid design for our next version.',
-    images: []
-  }
-];
-
-// Mock data for questions
-const mockQuestions: Question[] = [
-  {
-    id: 'q-001',
-    productId: 'prod-001',
-    productName: 'Premium Leather Handbag',
-    customerId: 'cust-110',
-    customerName: 'David Chen',
-    customerAvatar: null,
-    question: 'Does this handbag have a shoulder strap or is it only a handle?',
-    status: 'answered',
-    createdAt: '2025-06-12T10:30:00Z',
-    updatedAt: '2025-06-13T14:15:00Z',
-    answer: 'Yes, this handbag comes with both a handle and a detachable shoulder strap for versatile wearing options.'
-  },
-  {
-    id: 'q-002',
-    productId: 'prod-002',
-    productName: 'Organic Cotton T-Shirt',
-    customerId: 'cust-111',
-    customerName: 'Anna Johnson',
-    customerAvatar: null,
-    question: 'Is this t-shirt true to size or should I order a size up?',
-    status: 'pending',
-    createdAt: '2025-06-16T09:20:00Z',
-    updatedAt: '2025-06-16T09:20:00Z',
-    answer: null
-  }
-];
+export interface ReviewStats {
+  totalReviews: number;
+  totalQuestions: number;
+  pendingReviews: number;
+  pendingQuestions: number;
+  averageRating: number;
+  topReviewedProducts: {
+    id: string;
+    name: string;
+    slug: string;
+    reviewCount: number;
+  }[];
+}
 
 const ReviewsTab = () => {
   const [activeTab, setActiveTab] = useState("reviews");
-  const [reviews, setReviews] = useState<Review[]>(mockReviews);
-  const [questions, setQuestions] = useState<Question[]>(mockQuestions);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [stats, setStats] = useState<ReviewStats | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Selected items for dialogs
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
@@ -150,6 +99,32 @@ const ReviewsTab = () => {
   const [isAnswerDialogOpen, setIsAnswerDialogOpen] = useState(false);
   const [isViewReviewDialogOpen, setIsViewReviewDialogOpen] = useState(false);
   const [isViewQuestionDialogOpen, setIsViewQuestionDialogOpen] = useState(false);
+  
+  // Load data on component mount
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  // Load reviews, questions and stats
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const [reviewsData, questionsData, statsData] = await Promise.all([
+        fetchReviews(),
+        fetchQuestions(),
+        fetchReviewStats()
+      ]);
+      
+      setReviews(reviewsData);
+      setQuestions(questionsData);
+      setStats(statsData);
+    } catch (error) {
+      console.error("Error loading review data:", error);
+      toast.error("Failed to load review data. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   // Filter reviews based on search and status
   const filteredReviews = reviews.filter(review => {
@@ -201,18 +176,27 @@ const ReviewsTab = () => {
   };
   
   // Handle submitting a reply
-  const handleReplySubmit = () => {
+  const handleReplySubmit = async () => {
     if (!selectedReview || !replyText.trim()) return;
     
-    setReviews(reviews.map(review => 
-      review.id === selectedReview.id 
-        ? { ...review, reply: replyText, updatedAt: new Date().toISOString() }
-        : review
-    ));
-    
-    toast.success("Reply posted successfully");
-    setReplyText("");
-    setIsReplyDialogOpen(false);
+    setIsSubmitting(true);
+    try {
+      const updatedReview = await replyToReview(selectedReview.id, replyText);
+      
+      // Update the reviews list with the updated review
+      setReviews(reviews.map(review => 
+        review.id === selectedReview.id ? updatedReview : review
+      ));
+      
+      toast.success("Reply posted successfully");
+      setReplyText("");
+      setIsReplyDialogOpen(false);
+    } catch (error) {
+      console.error("Error replying to review:", error);
+      toast.error("Failed to post reply. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   // Handle viewing a question
@@ -229,49 +213,89 @@ const ReviewsTab = () => {
   };
   
   // Handle submitting an answer
-  const handleAnswerSubmit = () => {
+  const handleAnswerSubmit = async () => {
     if (!selectedQuestion || !answerText.trim()) return;
     
-    setQuestions(questions.map(question => 
-      question.id === selectedQuestion.id 
-        ? { 
-            ...question, 
-            answer: answerText, 
-            status: 'answered', 
-            updatedAt: new Date().toISOString() 
-          }
-        : question
-    ));
-    
-    toast.success("Answer posted successfully");
-    setAnswerText("");
-    setIsAnswerDialogOpen(false);
+    setIsSubmitting(true);
+    try {
+      const updatedQuestion = await answerQuestion(selectedQuestion.id, answerText);
+      
+      // Update the questions list with the updated question
+      setQuestions(questions.map(question => 
+        question.id === selectedQuestion.id ? updatedQuestion : question
+      ));
+      
+      toast.success("Answer posted successfully");
+      setAnswerText("");
+      setIsAnswerDialogOpen(false);
+    } catch (error) {
+      console.error("Error answering question:", error);
+      toast.error("Failed to post answer. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   // Handle updating review status
-  const handleUpdateReviewStatus = (reviewId: string, newStatus: 'published' | 'pending' | 'hidden') => {
-    setReviews(reviews.map(review => 
-      review.id === reviewId 
-        ? { ...review, status: newStatus, updatedAt: new Date().toISOString() }
-        : review
-    ));
-    
-    toast.success(`Review ${newStatus === 'published' ? 'published' : newStatus === 'hidden' ? 'hidden' : 'updated'} successfully`);
-    setIsViewReviewDialogOpen(false);
+  const handleUpdateReviewStatus = async (reviewId: string, newStatus: 'published' | 'pending' | 'hidden') => {
+    try {
+      const updatedReview = await updateReviewStatus(reviewId, newStatus);
+      
+      // Update the reviews list with the updated review
+      setReviews(reviews.map(review => 
+        review.id === reviewId ? updatedReview : review
+      ));
+      
+      toast.success(`Review ${newStatus === 'published' ? 'published' : newStatus === 'hidden' ? 'hidden' : 'updated'} successfully`);
+      setIsViewReviewDialogOpen(false);
+    } catch (error) {
+      console.error("Error updating review status:", error);
+      toast.error("Failed to update review status. Please try again.");
+    }
   };
   
   // Handle deleting a review
-  const handleDeleteReview = (reviewId: string) => {
-    setReviews(reviews.filter(review => review.id !== reviewId));
-    toast.success("Review deleted successfully");
+  const handleDeleteReview = async (reviewId: string) => {
+    try {
+      await deleteReview(reviewId);
+      
+      // Remove the deleted review from the reviews list
+      setReviews(reviews.filter(review => review.id !== reviewId));
+      
+      toast.success("Review deleted successfully");
+      setIsViewReviewDialogOpen(false);
+    } catch (error) {
+      console.error("Error deleting review:", error);
+      toast.error("Failed to delete review. Please try again.");
+    }
   };
   
   // Handle deleting a question
-  const handleDeleteQuestion = (questionId: string) => {
-    setQuestions(questions.filter(question => question.id !== questionId));
-    toast.success("Question deleted successfully");
-    setIsViewQuestionDialogOpen(false);
+  const handleDeleteQuestion = async (questionId: string) => {
+    try {
+      await deleteQuestion(questionId);
+      
+      // Remove the deleted question from the questions list
+      setQuestions(questions.filter(question => question.id !== questionId));
+      
+      toast.success("Question deleted successfully");
+      setIsViewQuestionDialogOpen(false);
+    } catch (error) {
+      console.error("Error deleting question:", error);
+      toast.error("Failed to delete question. Please try again.");
+    }
   };
+  
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[400px]">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-gray-500 dark:text-gray-400">Loading reviews and questions...</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="p-4 sm:p-6">
@@ -280,19 +304,73 @@ const ReviewsTab = () => {
         <p className="text-sm text-gray-500 dark:text-gray-400">
           Manage customer reviews and questions about your products
         </p>
+        
+        {/* {stats && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Total Reviews</p>
+              <p className="text-2xl font-bold">{stats.totalReviews}</p>
+            </div>
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Pending Reviews</p>
+              <p className="text-2xl font-bold">{stats.pendingReviews}</p>
+            </div>
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Total Questions</p>
+              <p className="text-2xl font-bold">{stats.totalQuestions}</p>
+            </div>
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Avg. Rating</p>
+              <p className="text-2xl font-bold">{stats.averageRating.toFixed(1)}</p>
+            </div>
+          </div>
+        )} */}
       </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2 h-auto">
-          <TabsTrigger value="reviews" className="data-[state=active]:bg-primary/10">
-            <Star className="h-4 w-4 mr-2" />
-            Product Reviews
-          </TabsTrigger>
-          <TabsTrigger value="questions" className="data-[state=active]:bg-primary/10">
-            <MessageSquare className="h-4 w-4 mr-2" />
-            Product Questions
-          </TabsTrigger>
-        </TabsList>
+        <div className="border-b dark:border-gray-800">
+          <TabsList className="h-auto bg-transparent p-0 w-full grid grid-cols-2 rounded-none">
+            <TabsTrigger 
+              value="reviews" 
+              className="relative py-3 px-4 data-[state=active]:bg-transparent data-[state=active]:shadow-none rounded-none border-b-2 border-transparent data-[state=active]:border-primary transition-all"
+            >
+              <div className="flex items-center justify-center">
+                <Star className="h-4 w-4 mr-2" />
+                <span>Reviews</span>
+                {reviews.length > 0 && (
+                  <div className="ml-2 bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs font-medium">
+                    {reviews.length}
+                  </div>
+                )}
+              </div>
+              {stats && stats.pendingReviews > 0 && (
+                <div className="absolute -top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                  {stats.pendingReviews}
+                </div>
+              )}
+            </TabsTrigger>
+            
+            <TabsTrigger 
+              value="questions" 
+              className="relative py-3 px-4 data-[state=active]:bg-transparent data-[state=active]:shadow-none rounded-none border-b-2 border-transparent data-[state=active]:border-primary transition-all"
+            >
+              <div className="flex items-center justify-center">
+                <MessageSquare className="h-4 w-4 mr-2" />
+                <span>Questions</span>
+                {questions.length > 0 && (
+                  <div className="ml-2 bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs font-medium">
+                    {questions.length}
+                  </div>
+                )}
+              </div>
+              {stats && stats.pendingQuestions > 0 && (
+                <div className="absolute -top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                  {stats.pendingQuestions}
+                </div>
+              )}
+            </TabsTrigger>
+          </TabsList>
+        </div>
         
         {/* Reviews Tab */}
         <TabsContent value="reviews" className="space-y-4">
