@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Loader2 } from 'lucide-react';
 import type { Review } from '@/components/tabs/sub-tabs/Reviews';
 
 interface ReplyReviewProps {
@@ -19,6 +20,7 @@ interface ReplyReviewProps {
   replyText: string;
   setReplyText: (text: string) => void;
   onSubmit: () => void;
+  isSubmitting?: boolean;
 }
 
 interface StarRatingProps {
@@ -55,7 +57,8 @@ const ReplyReview = ({
   onOpenChange,
   replyText,
   setReplyText,
-  onSubmit
+  onSubmit,
+  isSubmitting = false
 }: ReplyReviewProps) => {
   if (!review) return null;
   
@@ -94,6 +97,7 @@ const ReplyReview = ({
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
               rows={5}
+              disabled={isSubmitting}
             />
           </div>
         </div>
@@ -102,11 +106,22 @@ const ReplyReview = ({
           <Button 
             variant="outline" 
             onClick={() => onOpenChange(false)}
+            disabled={isSubmitting}
           >
             Cancel
           </Button>
-          <Button onClick={onSubmit}>
-            {review.reply ? "Update Reply" : "Post Reply"}
+          <Button 
+            onClick={onSubmit}
+            disabled={isSubmitting || !replyText.trim()}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              review.reply ? "Update Reply" : "Post Reply"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
