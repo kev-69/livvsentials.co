@@ -416,3 +416,103 @@ export const updatePlatformSetting = async (key: string, value: any) => {
   }
 };
 
+export const fetchReviews = async () => {
+  try {
+    const response = await api.get('/admin/reviews');
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching reviews:', error);
+    throw error;
+  }
+};
+
+export const fetchReviewById = async (reviewId: string) => {
+  try {
+    const response = await api.get(`/admin/reviews/${reviewId}`);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching review details:', error);
+    throw error;
+  }
+};
+
+export const updateReviewStatus = async (reviewId: string, status: string) => {
+  try {
+    const response = await api.patch(`/admin/reviews/${reviewId}/status`, { status: status.toUpperCase() });
+    return response.data.data;
+  } catch (error) {
+    console.error('Error updating review status:', error);
+    throw error;
+  }
+};
+
+export const replyToReview = async (reviewId: string, reply: string) => {
+  try {
+    const response = await api.post(`/admin/reviews/${reviewId}/reply`, { reply });
+    return response.data.data;
+  } catch (error) {
+    console.error('Error replying to review:', error);
+    throw error;
+  }
+};
+
+export const deleteReview = async (reviewId: string) => {
+  try {
+    const response = await api.delete(`/admin/reviews/${reviewId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting review:', error);
+    throw error;
+  }
+};
+
+// Questions APIs
+export const fetchQuestions = async () => {
+  try {
+    const response = await api.get('/admin/questions');
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching questions:', error);
+    throw error;
+  }
+};
+
+export const fetchQuestionById = async (questionId: string) => {
+  try {
+    const response = await api.get(`/admin/questions/${questionId}`);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching question details:', error);
+    throw error;
+  }
+};
+
+export const answerQuestion = async (questionId: string, answer: string) => {
+  try {
+    const response = await api.post(`/admin/questions/${questionId}/answer`, { answer });
+    return response.data.data;
+  } catch (error) {
+    console.error('Error answering question:', error);
+    throw error;
+  }
+};
+
+export const deleteQuestion = async (questionId: string) => {
+  try {
+    const response = await api.delete(`/admin/questions/${questionId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting question:', error);
+    throw error;
+  }
+};
+
+export const fetchReviewStats = async () => {
+  try {
+    const response = await api.get('/admin/reviews/stats');
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching review statistics:', error);
+    throw error;
+  }
+};
