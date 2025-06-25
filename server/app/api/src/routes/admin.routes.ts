@@ -10,6 +10,7 @@ import { paymentRoutes } from "../../../../modules/admin/payments/payment.module
 import { orderRoutes } from "../../../../modules/admin/orders/order.module";
 import { helpRoutes } from "../../../../modules/admin/help/help.module";
 import { platformSettingsRoutes } from "../../../../modules/admin/platform/platform.module";
+import { reviewsRoutes } from "../../../../modules/admin/reviews/reviews.module";
 
 const router = Router();
 
@@ -58,5 +59,11 @@ router.use("/settings",
     isAdmin,
     platformSettingsRoutes
 );
+
+router.use('/',
+    validateToken,
+    isAdmin,
+    reviewsRoutes
+)
 
 export { router as adminRoutes };
