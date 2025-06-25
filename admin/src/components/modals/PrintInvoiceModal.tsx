@@ -17,11 +17,11 @@ const PrintInvoiceModal = ({ open, onOpenChange, order }: PrintInvoiceModalProps
 
   // Company info
   const companyInfo = {
-    name: "Livvsentials",
+    name: "Livssentials",
     address: "123 Shop Street, Accra, Ghana",
     phone: "+233 20 1234567",
-    email: "info@livvsentials.co",
-    website: "www.livvsentials.co",
+    email: "info@livssentials.co",
+    website: "www.livssentials.com",
     logo: "/logo.png" // Path to your logo
   };
 
