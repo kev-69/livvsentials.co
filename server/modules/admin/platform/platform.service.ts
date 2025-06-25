@@ -15,21 +15,14 @@ export enum SettingKey {
 
 // Define interfaces for each setting type
 interface AppearanceSettings {
-    siteName: string;
-    logo: string;
-    favicon: string;
     primaryColor: string;
     secondaryColor: string;
-    footerText: string;
-    enableDarkMode: boolean;
 }
 
 interface SEOSettings {
     metaTitle: string;
     metaDescription: string;
     keywords: string[];
-    googleAnalyticsId: string;
-    facebookPixelId: string;
 }
 
 interface ContactInfoSettings {
@@ -40,8 +33,8 @@ interface ContactInfoSettings {
     socialMedia: {
         facebook: string;
         instagram: string;
-        twitter: string;
-        youtube: string;
+        snapchat: string;
+        tiktok: string;
     }
 }
 
@@ -85,7 +78,6 @@ interface NotificationSettings {
     enableOrderNotifications: boolean;
     enableStockAlerts: boolean;
     stockThreshold: number;
-    adminEmails: string[];
 }
 
 export const settingsServices = {
@@ -143,8 +135,6 @@ export const settingsServices = {
             for (const key of settingKeys) {
                 if (settingsMap.has(key)) {
                     settings[key] = settingsMap.get(key);
-                } else {
-                    settings[key] = this.getDefaultSettings(key);
                 }
             }
 
@@ -198,33 +188,26 @@ export const settingsServices = {
         switch (key) {
             case SettingKey.APPEARANCE:
                 return {
-                    siteName: "Livvsentials",
-                    logo: "/logo.png",
-                    favicon: "/favicon.ico",
                     primaryColor: "#8B5CF6",
                     secondaryColor: "#EC4899",
-                    footerText: "© 2023 Livvsentials. All rights reserved.",
-                    enableDarkMode: true
                 } as AppearanceSettings;
             case SettingKey.SEO:
                 return {
-                    metaTitle: "Livvsentials - Your Beauty Shop",
+                    metaTitle: "Livssentials - Your Beauty Shop",
                     metaDescription: "Shop the latest beauty products and accessories.",
                     keywords: ["beauty", "skincare", "makeup", "accessories"],
-                    googleAnalyticsId: "",
-                    facebookPixelId: ""
                 } as SEOSettings;
             case SettingKey.CONTACT_INFO:
                 return {
-                    email: "info@livvsentials.co",
+                    email: "info@livssentials.com",
                     phone: "+233 20 1234567",
                     address: "123 Shop Street, Accra, Ghana",
                     googleMapsLink: "",
                     socialMedia: {
                         facebook: "",
                         instagram: "",
-                        twitter: "",
-                        youtube: ""
+                        snapchat: "",
+                        tiktok: ""
                     }
                 } as ContactInfoSettings;
             case SettingKey.SHIPPING:
@@ -243,8 +226,8 @@ export const settingsServices = {
                 } as PaymentSettings;
             case SettingKey.EMAILS:
                 return {
-                    senderName: "Livvsentials",
-                    senderEmail: "noreply@livvsentials.co",
+                    senderName: "Livssentials",
+                    senderEmail: "noreply@livssentials.com",
                     templates: {
                         orderConfirmation: {
                             subject: "Your order has been confirmed",
