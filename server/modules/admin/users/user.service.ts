@@ -11,8 +11,6 @@ export const userServices = {
                     lastName: true,
                     email: true,
                     phone: true,
-                    createdAt: true,
-                    updatedAt: true,
                     orders: {
                         select: {
                             id: true,
@@ -34,8 +32,6 @@ export const userServices = {
                     lastName: user.lastName,
                     email: user.email,
                     phone: user.phone,
-                    createdAt: user.createdAt,
-                    updatedAt: user.updatedAt,
                     orders: {
                         count: user.orders.length,
                         totalSpent,
@@ -46,6 +42,43 @@ export const userServices = {
         } catch (error) {
             logger.error(`Error fetching users: ${error}`);
             throw new Error(`Error fetching users: ${error}`);
+        }
+    },
+
+    async getUserById(id: string) {
+        try {
+            const user = await prisma.user.findUnique({
+                where: { id },
+                select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    phone: true,
+                    createdAt: true,
+                    updatedAt: true,
+                    orders: {
+                        include: {
+                            orderItems: {
+                                include: {
+                                    product: true
+                                }
+                            },
+                            payments: true
+                        }
+                    }
+                    
+                },
+            });
+
+            if (!user) {
+                throw new Error(`User with ID ${id} not found`);
+            }
+
+            return user;
+        } catch (error) {
+            logger.error(`Error fetching user by ID ${id}: ${error}`);
+            throw new Error(`Error fetching user by ID ${id}: ${error}`);
         }
     },
 
