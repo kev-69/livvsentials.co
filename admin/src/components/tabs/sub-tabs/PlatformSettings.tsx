@@ -9,8 +9,7 @@ import {
   Image,
   // Palette,
   Mail,
-  CreditCard,
-  Truck,
+  // Truck,
   Bell,
   RefreshCw,
   Loader2
@@ -19,8 +18,6 @@ import { getPlatformSettings, updatePlatformSetting } from '@/lib/api';
 import AppearanceSettings from '@/components/settings/AppearanceSettings';
 import ContactSettings from '@/components/settings/ContactSettings';
 import SEOSettings from '@/components/settings/SEOSettings';
-import ShippingSettings from '@/components/settings/ShippingSettings';
-import PaymentSettings from '@/components/settings/PaymentSettings';
 import EmailSettings from '@/components/settings/EmailSettings';
 import NotificationSettings from '@/components/settings/NotificationSettings';
 
@@ -207,7 +204,7 @@ const PlatformSettingsTab = () => {
         className="space-y-4"
       >
         <div className="bg-background sticky top-0 z-10 pb-4">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-7 h-auto">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-5 h-auto">
             <TabsTrigger value={SettingKey.APPEARANCE} className="data-[state=active]:bg-primary/10">
               <Image className="h-4 w-4 mr-2" />
               Appearance
@@ -219,14 +216,6 @@ const PlatformSettingsTab = () => {
             <TabsTrigger value={SettingKey.CONTACT_INFO} className="data-[state=active]:bg-primary/10">
               <Mail className="h-4 w-4 mr-2" />
               Contact
-            </TabsTrigger>
-            <TabsTrigger value={SettingKey.SHIPPING} className="data-[state=active]:bg-primary/10">
-              <Truck className="h-4 w-4 mr-2" />
-              Shipping
-            </TabsTrigger>
-            <TabsTrigger value={SettingKey.PAYMENT} className="data-[state=active]:bg-primary/10">
-              <CreditCard className="h-4 w-4 mr-2" />
-              Payment
             </TabsTrigger>
             <TabsTrigger value={SettingKey.EMAILS} className="data-[state=active]:bg-primary/10">
               <Mail className="h-4 w-4 mr-2" />
@@ -324,64 +313,6 @@ const PlatformSettingsTab = () => {
                 onSocialMediaChange={(key, value) => 
                   handleNestedSettingChange(SettingKey.CONTACT_INFO, 'socialMedia', key, value)
                 } 
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Shipping Tab */}
-        <TabsContent value={SettingKey.SHIPPING}>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Shipping Settings</CardTitle>
-                <CardDescription>Configure shipping options and fees</CardDescription>
-              </div>
-              <Button 
-                onClick={() => handleSaveSection(SettingKey.SHIPPING)} 
-                disabled={savingSection === SettingKey.SHIPPING}
-              >
-                {savingSection === SettingKey.SHIPPING ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="mr-2 h-4 w-4" />
-                )}
-                Save
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <ShippingSettings 
-                settings={settings[SettingKey.SHIPPING] || {}} 
-                onChange={(key, value) => handleSettingChange(SettingKey.SHIPPING, key, value)} 
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Payment Tab */}
-        <TabsContent value={SettingKey.PAYMENT}>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Payment Settings</CardTitle>
-                <CardDescription>Configure payment methods and options</CardDescription>
-              </div>
-              <Button 
-                onClick={() => handleSaveSection(SettingKey.PAYMENT)} 
-                disabled={savingSection === SettingKey.PAYMENT}
-              >
-                {savingSection === SettingKey.PAYMENT ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="mr-2 h-4 w-4" />
-                )}
-                Save
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <PaymentSettings 
-                settings={settings[SettingKey.PAYMENT] || {}} 
-                onChange={(key, value) => handleSettingChange(SettingKey.PAYMENT, key, value)} 
               />
             </CardContent>
           </Card>
