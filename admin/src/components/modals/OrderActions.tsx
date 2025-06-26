@@ -113,7 +113,7 @@ const OrderActions = ({
     setIsLoading(true);
 
     try {
-      let result;
+      let result: any;
       
       switch (action) {
         case "ship":
@@ -263,7 +263,7 @@ const OrderActions = ({
                 </div>
                 <div>
                   <p className="text-muted-foreground">Email:</p>
-                  <p className="font-medium">{order.user?.email}</p>
+                  <p className="font-medium">{order.user?.phone}</p>
                 </div>
               </div>
             </div>
