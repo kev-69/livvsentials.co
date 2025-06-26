@@ -8,6 +8,7 @@ import {
   Search,
   Loader2,
   Flag,
+  MoreVertical,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -87,6 +88,21 @@ export const HelpCenterTab = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isChangingStatus, setIsChangingStatus] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isMobileView, setIsMobileView] = useState(false);
+
+  // Check for mobile view on mount and window resize
+  useEffect(() => {
+    const checkMobileView = () => {
+      setIsMobileView(window.innerWidth < 768);
+    };
+    
+    checkMobileView();
+    window.addEventListener('resize', checkMobileView);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobileView);
+    };
+  }, []);
 
   // Fetch all tickets when component mounts
   useEffect(() => {
@@ -209,15 +225,20 @@ export const HelpCenterTab = () => {
     }
   };
 
+  // Back button for mobile view
+  const handleBackToList = () => {
+    setSelectedTicket(null);
+  };
+
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold tracking-tight dark:text-white">Help Center</h1>
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight dark:text-white">Help Center</h1>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 overflow-y-auto max-h-[full]">
-        {/* Ticket List */}
-        <div className="md:col-span-1">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+        {/* Ticket List - Hide on mobile when a ticket is selected */}
+        <div className={`md:col-span-1 ${isMobileView && selectedTicket ? 'hidden' : 'block'}`}>
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">Support Tickets</CardTitle>
@@ -234,7 +255,7 @@ export const HelpCenterTab = () => {
             </CardHeader>
             <CardContent className="p-0">
               <Tabs defaultValue="all" value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-                <div className="px-6 pt-2 pb-0">
+                <div className="px-4 pt-2 pb-0">
                   <TabsList className="w-full">
                     <TabsTrigger value="all" className="flex-1">All</TabsTrigger>
                     <TabsTrigger value="open" className="flex-1">Open</TabsTrigger>
@@ -262,18 +283,18 @@ export const HelpCenterTab = () => {
                           onClick={() => handleViewTicket(ticket.id)}
                         >
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-sm font-medium dark:text-gray-300">{ticket.subject}</span>
+                            <span className="text-sm font-medium dark:text-gray-300 truncate max-w-[70%]">{ticket.subject}</span>
                             <Badge variant="outline" className={getStatusBadgeClass(ticket.status)}>
                               {ticket.status.toLowerCase()}
                             </Badge>
                           </div>
                           <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-1">
-                            <UserCircle className="mr-1 h-3 w-3" />
+                            <UserCircle className="mr-1 h-3 w-3 flex-shrink-0" />
                             <span>{ticket.customerName}</span>
                           </div>
                           <div className="flex items-center justify-between text-xs">
                             <span className="text-gray-500 dark:text-gray-400 flex items-center">
-                              <Clock className="mr-1 h-3 w-3" />
+                              <Clock className="mr-1 h-3 w-3 flex-shrink-0" />
                               {formatDate(ticket.createdAt)}
                             </span>
                             <Badge variant="outline" className={getPriorityBadgeClass(ticket.priority)}>
@@ -290,8 +311,8 @@ export const HelpCenterTab = () => {
           </Card>
         </div>
 
-        {/* Ticket Details */}
-        <div className="md:col-span-2">
+        {/* Ticket Details - Full width on mobile when a ticket is selected */}
+        <div className={`md:col-span-2 ${isMobileView && !selectedTicket ? 'hidden' : 'block'}`}>
           {isLoading && selectedTicket ? (
             <Card className="h-full flex items-center justify-center">
               <CardContent className="text-center p-6">
@@ -302,22 +323,48 @@ export const HelpCenterTab = () => {
           ) : selectedTicket ? (
             <Card className="h-full flex flex-col">
               <CardHeader className="pb-2 border-b dark:border-gray-700">
-                <div className="flex justify-between items-start">
+                {/* Mobile back button */}
+                {isMobileView && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={handleBackToList}
+                    className="mb-2 -ml-2 h-8 w-8 p-0"
+                  >
+                    <span className="sr-only">Back</span>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className="h-4 w-4"
+                    >
+                      <path d="m15 18-6-6 6-6" />
+                    </svg>
+                  </Button>
+                )}
+                
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
                   <div>
-                    <CardTitle className="text-lg">{selectedTicket.subject}</CardTitle>
-                    <div className="flex items-center gap-2 mt-1">
+                    <CardTitle className="text-lg pr-2">{selectedTicket.subject}</CardTitle>
+                    <div className="flex flex-wrap items-center gap-2 mt-1">
                       <Badge variant="outline" className={getStatusBadgeClass(selectedTicket.status)}>
                         {selectedTicket.status.toLowerCase()}
                       </Badge>
                       <Badge variant="outline" className={getPriorityBadgeClass(selectedTicket.priority)}>
                         {selectedTicket.priority.toLowerCase()}
                       </Badge>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
                         {selectedTicket.ticketNumber}
                       </span>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  
+                  {/* Desktop actions */}
+                  <div className="hidden sm:flex gap-2">
                     {/* Status Actions */}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -385,17 +432,84 @@ export const HelpCenterTab = () => {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
+                  
+                  {/* Mobile actions (combined menu) */}
+                  <div className="sm:hidden self-end">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <span className="sr-only">Open menu</span>
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-[200px]">
+                        <DropdownMenuItem 
+                          onClick={() => handleStatusChange('OPEN')}
+                          disabled={selectedTicket.status === 'OPEN' || isChangingStatus}
+                        >
+                          <CheckCircle className="mr-2 h-4 w-4" />
+                          <span>Mark as Open</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleStatusChange('PENDING')}
+                          disabled={selectedTicket.status === 'PENDING' || isChangingStatus}
+                        >
+                          <CheckCircle className="mr-2 h-4 w-4" />
+                          <span>Mark as Pending</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleStatusChange('RESOLVED')}
+                          disabled={selectedTicket.status === 'RESOLVED' || isChangingStatus}
+                        >
+                          <CheckCircle className="mr-2 h-4 w-4" />
+                          <span>Mark as Resolved</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handlePriorityChange('HIGH')}
+                          disabled={selectedTicket.priority === 'HIGH'}
+                          className="text-red-500"
+                        >
+                          <Flag className="mr-2 h-4 w-4" />
+                          <span>Set High Priority</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handlePriorityChange('MEDIUM')}
+                          disabled={selectedTicket.priority === 'MEDIUM'}
+                          className="text-yellow-500"
+                        >
+                          <Flag className="mr-2 h-4 w-4" />
+                          <span>Set Medium Priority</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handlePriorityChange('LOW')}
+                          disabled={selectedTicket.priority === 'LOW'}
+                          className="text-green-500"
+                        >
+                          <Flag className="mr-2 h-4 w-4" />
+                          <span>Set Low Priority</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
-                <div className="flex items-center mt-2 text-sm text-gray-500 dark:text-gray-400">
-                  <UserCircle className="mr-1 h-4 w-4" />
-                  <span>{selectedTicket.customerName} ({selectedTicket.customerEmail})</span>
-                  <span className="mx-2">•</span>
-                  <Clock className="mr-1 h-4 w-4" />
-                  <span>Created on {formatDate(selectedTicket.createdAt)}</span>
+                
+                <div className="flex flex-wrap items-center mt-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center mr-4">
+                    <UserCircle className="mr-1 h-4 w-4 flex-shrink-0" />
+                    <span className="truncate max-w-[200px]">{selectedTicket.customerName}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Clock className="mr-1 h-4 w-4 flex-shrink-0" />
+                    <span>Created on {formatDate(selectedTicket.createdAt)}</span>
+                  </div>
+                  <div className="w-full mt-1 truncate">
+                    <span className="text-xs">{selectedTicket.customerEmail}</span>
+                  </div>
                 </div>
               </CardHeader>
+              
               <CardContent className="flex-grow overflow-auto p-0">
-                <div className="p-4 space-y-4 max-h-[400px] overflow-y-auto">
+                <div className="p-4 space-y-4 max-h-[350px] sm:max-h-[400px] overflow-y-auto">
                   {selectedTicket.messages && selectedTicket.messages.length > 0 ? (
                     selectedTicket.messages.map((message: any, index: number) => (
                       <div 
@@ -403,7 +517,7 @@ export const HelpCenterTab = () => {
                         className={`flex ${message.senderType === 'ADMIN' ? 'justify-end' : 'justify-start'}`}
                       >
                         <div 
-                          className={`max-w-[80%] rounded-lg p-3 ${
+                          className={`max-w-[90%] sm:max-w-[80%] rounded-lg p-3 ${
                             message.senderType === 'ADMIN' 
                               ? 'bg-primary/10 dark:bg-primary/20 text-primary-foreground' 
                               : message.senderType === 'SYSTEM'
@@ -411,7 +525,7 @@ export const HelpCenterTab = () => {
                                 : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
                           }`}
                         >
-                          <div className="flex items-center mb-1">
+                          <div className="flex flex-wrap items-center mb-1">
                             <Avatar className="h-6 w-6 mr-2">
                               {message.admin && message.admin.firstName ? (
                                 <AvatarFallback>
@@ -427,7 +541,7 @@ export const HelpCenterTab = () => {
                                 </AvatarFallback>
                               )}
                             </Avatar>
-                            <span className="text-xs font-medium">
+                            <span className="text-xs font-medium truncate max-w-[100px] sm:max-w-[150px]">
                               {message.senderType === 'ADMIN' 
                                 ? message.admin 
                                   ? `${message.admin.firstName} ${message.admin.lastName}`
@@ -442,7 +556,7 @@ export const HelpCenterTab = () => {
                               {formatTime(message.createdAt)}
                             </span>
                           </div>
-                          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                          <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
                         </div>
                       </div>
                     ))
@@ -454,12 +568,13 @@ export const HelpCenterTab = () => {
                   )}
                 </div>
               </CardContent>
+              
               {selectedTicket.status !== 'RESOLVED' && (
                 <div className="p-4 border-t dark:border-gray-700">
                   <div className="flex gap-2">
                     <Textarea 
                       placeholder="Type your reply..." 
-                      className="flex-grow resize-none"
+                      className="flex-grow resize-none min-h-[80px] sm:min-h-[auto]"
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
                       disabled={isSubmitting}
@@ -467,6 +582,7 @@ export const HelpCenterTab = () => {
                     <Button 
                       onClick={handleSendMessage} 
                       disabled={!newMessage.trim() || isSubmitting}
+                      className="self-end"
                     >
                       {isSubmitting ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
