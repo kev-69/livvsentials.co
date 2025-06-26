@@ -31,4 +31,13 @@ router.get('/users/guest-checkouts',
     userController.getGuestCheckouts
 );
 
+/**
+ * @route GET /api/admin/users/:id
+ * @desc Get user by ID
+ * @access Admin only
+*/
+router.get('/users/:id',
+    userController.getUserById
+);
+
 export { router as userRoutes };
