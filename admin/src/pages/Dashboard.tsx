@@ -7,7 +7,7 @@ import {
   ShoppingBag, 
   Users, 
   CreditCard, 
-  HelpCircle, 
+  // HelpCircle, 
   Settings,
   Package,
   Star,
@@ -21,7 +21,7 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 // Main tabs
 import SettingsTab from '@/components/tabs/Settings';
-import HelpCenterTab from '@/components/tabs/HelpCenter';
+// import HelpCenterTab from '@/components/tabs/HelpCenter';
 import OrdersTab from '@/components/tabs/Orders';
 import CustomersTab from '@/components/tabs/Customers';
 import PaymentsTab from '@/components/tabs/Payments';
@@ -61,7 +61,7 @@ const Dashboard = () => {
 
   // Automatically handle sidebar state based on screen size
   const isSmallScreen = windowWidth < 768; // md breakpoint in Tailwind
-  const sidebarOpen = !isSmallScreen;
+  // const sidebarOpen = !isSmallScreen;
   
   // State for store menu (automatically open on larger screens)
   const [storeMenuOpen, setStoreMenuOpen] = useState(!isSmallScreen);
@@ -221,13 +221,13 @@ const Dashboard = () => {
           
           {/* Bottom Navigation - Help and Settings */}
           <ul className="px-2 space-y-1 mt-auto mb-6">
-            <NavItem 
+            {/* <NavItem 
               icon={<HelpCircle size={20} />} 
               label="Help Center" 
               active={activeContent === 'help'}
               collapsed={isSmallScreen} 
               onClick={() => setActiveContent('help')}
-            />
+            /> */}
             <NavItem 
               icon={<Settings size={20} />} 
               label="Settings" 
@@ -299,7 +299,7 @@ const Dashboard = () => {
           {activeContent === 'payments' && <PaymentsTab />}
 
           {/* Help Center Content */}
-          {activeContent === 'help' && <HelpCenterTab />}
+          {/* {activeContent === 'help' && <HelpCenterTab />} */}
 
           {/* Settings Content */}
           {activeContent === 'settings' && <SettingsTab />}
