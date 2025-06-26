@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Download,
 } from 'lucide-react';
+import { fetchPendingOrders } from '@/lib/api'
 
 // Import order components
 import TotalOrders from '@/components/cards/TotalOrders';
@@ -11,9 +12,27 @@ import WeekOrders from '@/components/cards/WeekOrders';
 import AvgWeeklyOrders from '@/components/cards/AvgWeeklyOrders';
 import OrdersTable from '@/components/tables/OrdersTable';
 import PendingOrders from '@/components/tables/PendingOrders';
+import { toast } from 'sonner';
+
 
 const OrdersTab = () => {
   const [orderTab, setOrderTab] = useState('pending');
+  const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
+
+  // Function to fetch and update pending orders count
+  const updatePendingOrdersCount = async () => {
+    try {
+      const response = await fetchPendingOrders();
+      setPendingOrdersCount(response.length);
+    } catch (error) {
+      console.error("Error fetching pending orders:", error);
+    }
+  };
+
+  // Fetch pending orders count on component mount
+  useState(() => {
+    updatePendingOrdersCount();
+  });
 
   return (
     <div className="p-4 sm:p-6">
@@ -38,10 +57,13 @@ const OrdersTab = () => {
       <Tabs value={orderTab} onValueChange={setOrderTab} className="space-y-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <TabsList>
-            <TabsTrigger value="pending">
+            <TabsTrigger value="pending" onClick={() => {
+              updatePendingOrdersCount();
+              toast.info(`You have ${pendingOrdersCount} pending orders to attend to`);
+            }}>
               Pending
               <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                7
+                {pendingOrdersCount}
               </span>
             </TabsTrigger>
             <TabsTrigger value="all">All Orders</TabsTrigger>
