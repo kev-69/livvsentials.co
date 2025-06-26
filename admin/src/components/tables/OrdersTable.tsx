@@ -9,20 +9,13 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { 
-  MoreHorizontal,
+  // MoreHorizontal,
   Loader2,
   Search,
   AlertCircle,
   Eye,
-  Printer
+  // Printer
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchOrders, fetchOrderDetails } from "@/lib/api";
@@ -143,19 +136,19 @@ const OrdersTable = () => {
     }
   };
 
-  const handlePrintInvoice = async (orderId: string) => {
-    try {
-      setLoadingOrderDetails(true);
-      const orderDetails = await fetchOrderDetails(orderId);
-      setOrderForInvoice(orderDetails);
-      setPrintInvoiceOpen(true);
-    } catch (err) {
-      console.error("Failed to fetch order details for invoice:", err);
-      toast.error("Failed to load order details for invoice. Please try again.");
-    } finally {
-      setLoadingOrderDetails(false);
-    }
-  };
+  // const handlePrintInvoice = async (orderId: string) => {
+  //   try {
+  //     setLoadingOrderDetails(true);
+  //     const orderDetails = await fetchOrderDetails(orderId);
+  //     setOrderForInvoice(orderDetails);
+  //     setPrintInvoiceOpen(true);
+  //   } catch (err) {
+  //     console.error("Failed to fetch order details for invoice:", err);
+  //     toast.error("Failed to load order details for invoice. Please try again.");
+  //   } finally {
+  //     setLoadingOrderDetails(false);
+  //   }
+  // };
 
   // Filter and sort orders
   const filteredOrders = orders.filter(order => {
@@ -315,7 +308,7 @@ const OrdersTable = () => {
 
               {totalPages > 1 && (
                 <Pagination className="mt-4">
-                  <PaginationContent>
+                  <PaginationContent className="flex flex-wrap justify-center gap-1">
                     <PaginationItem>
                       <PaginationPrevious 
                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
@@ -323,16 +316,48 @@ const OrdersTable = () => {
                       />
                     </PaginationItem>
                     
-                    {Array.from({ length: totalPages }).map((_, i) => (
-                      <PaginationItem key={i}>
-                        <PaginationLink
-                          onClick={() => setCurrentPage(i + 1)}
-                          isActive={currentPage === i + 1}
-                        >
-                          {i + 1}
-                        </PaginationLink>
-                      </PaginationItem>
-                    ))}
+                    {/* Responsive pagination that shows limited page numbers on mobile */}
+                    {Array.from({ length: totalPages }).map((_, i) => {
+                      // On mobile, only show current page and 1 page before/after
+                      const pageNum = i + 1;
+                      const showOnMobile = 
+                        pageNum === 1 || 
+                        pageNum === totalPages || 
+                        Math.abs(pageNum - currentPage) <= 1;
+                      
+                      // Add ellipsis for gaps in pagination
+                      if (!showOnMobile && (pageNum === currentPage - 2 || pageNum === currentPage + 2)) {
+                        return (
+                          <PaginationItem key={`ellipsis-${i}`} className="hidden sm:block">
+                            <span className="px-2">...</span>
+                          </PaginationItem>
+                        );
+                      }
+                      
+                      if (!showOnMobile) {
+                        return (
+                          <PaginationItem key={i} className="hidden sm:block">
+                            <PaginationLink
+                              onClick={() => setCurrentPage(pageNum)}
+                              isActive={currentPage === pageNum}
+                            >
+                              {pageNum}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      }
+                      
+                      return (
+                        <PaginationItem key={i}>
+                          <PaginationLink
+                            onClick={() => setCurrentPage(pageNum)}
+                            isActive={currentPage === pageNum}
+                          >
+                            {pageNum}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    })}
                     
                     <PaginationItem>
                       <PaginationNext 
