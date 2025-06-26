@@ -18,6 +18,26 @@ export const userController = {
             }
         }
     },
+
+    getUserById: async (req: Request, res: Response) => {
+        const userId = req.params.id;
+        try {
+            const user = await userServices.getUserById(userId);
+            if (!user) {
+                res.status(404).json(errorResponse("User not found"));
+                return;
+            }
+            res.status(200).json(successResponse("User retrieved successfully", user));
+        } catch (error) {
+            if (error instanceof AppError) {
+                res.status(error.statusCode).json(errorResponse(error.message));
+            } else if (error instanceof Error) {
+                res.status(500).json(errorResponse(error.message));
+            } else {
+                res.status(500).json(errorResponse('Internal server error'));
+            }
+        }
+    },
     
     getUserStats: async (req: Request, res: Response) => {
         try {
