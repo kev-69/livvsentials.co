@@ -39,6 +39,16 @@ export const fetchCustomers = async () => {
   }
 };
 
+export const fetchCustomerById = async (customerId: string) => {
+  try {
+    const response = await api.get(`/admin/users/${customerId}`);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching customer by ID:', error);
+    throw error;
+  }
+};
+
 export const fetchOrderDetails = async (orderId: string) => {
   try {
     const response = await api.get(`/admin/orders/${orderId}`);
