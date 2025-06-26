@@ -44,7 +44,7 @@ const SEOSettings = ({ settings, onChange }: SEOSettingsProps) => {
     <div className="space-y-6">
       <div className="grid gap-4">
         <div className="space-y-2">
-          <Label htmlFor="metaTitle">Meta metaTitle</Label>
+          <Label htmlFor="metaTitle">Meta Title</Label>
           <Input
             id="metaTitle"
             value={settings.metaTitle || ''}
@@ -62,7 +62,7 @@ const SEOSettings = ({ settings, onChange }: SEOSettingsProps) => {
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="metaDescription">Meta metaDescription</Label>
+          <Label htmlFor="metaDescription">Meta Description</Label>
           <Textarea
             id="metaDescription"
             value={settings.metaDescription || ''}
