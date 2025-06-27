@@ -1,3 +1,4 @@
+// Updated Dashboard.tsx with the fix
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -92,6 +93,16 @@ const Dashboard = () => {
     setActiveContent('store');
   };
 
+  // Function to handle submenu item click
+  const handleSubMenuItemClick = (subContent: SubContentType) => {
+    setActiveSubContent(subContent);
+    setActiveContent('store');
+    // Always close the menu on mobile screens
+    if (isSmallScreen) {
+      setStoreMenuOpen(false);
+    }
+  };
+
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
@@ -141,51 +152,35 @@ const Dashboard = () => {
                 )}
               </div>
               
-              {/* Show submenu conditionally */}
-              {((activeContent === 'store' && isSmallScreen) || (storeMenuOpen && !isSmallScreen)) && (
+              {/* Show submenu conditionally - FIXED: Now checks storeMenuOpen for all screen sizes */}
+              {storeMenuOpen && (
                 <ul className={`mt-1 space-y-1 ${isSmallScreen ? 'absolute left-20 bg-white dark:bg-gray-800 shadow-lg rounded-md p-2 z-50 w-48' : 'ml-7 border-l-2 border-gray-200 dark:border-dark-300 pl-2'}`}>
                   <SubNavItem 
                     icon={<Package size={18} />} 
                     label="Products" 
                     active={activeContent === 'store' && activeSubContent === 'products'}
-                    onClick={() => {
-                      setActiveSubContent('products');
-                      setActiveContent('store');
-                      if (isSmallScreen) setStoreMenuOpen(false);
-                    }}
+                    onClick={() => handleSubMenuItemClick('products')}
                     collapsed={false} // always show text in submenu
                   />
                   <SubNavItem 
                     icon={<Star size={18} />}  
                     label="Platform Settings" 
                     active={activeContent === 'store' && activeSubContent === 'platformSettings'}
-                    onClick={() => {
-                      setActiveSubContent('platformSettings');
-                      setActiveContent('store');
-                      if (isSmallScreen) setStoreMenuOpen(false);
-                    }}
+                    onClick={() => handleSubMenuItemClick('platformSettings')}
                     collapsed={false}
                   />
                   <SubNavItem 
                     icon={<Globe size={18} />} 
                     label="Reviews" 
                     active={activeContent === 'store' && activeSubContent === 'reviews'}
-                    onClick={() => {
-                      setActiveSubContent('reviews');
-                      setActiveContent('store');
-                      if (isSmallScreen) setStoreMenuOpen(false);
-                    }}
+                    onClick={() => handleSubMenuItemClick('reviews')}
                     collapsed={false}
                   />
                   <SubNavItem 
                     icon={<Bell size={18} />} 
                     label="Notifications" 
                     active={activeContent === 'store' && activeSubContent === 'notifications'}
-                    onClick={() => {
-                      setActiveSubContent('notifications');
-                      setActiveContent('store');
-                      if (isSmallScreen) setStoreMenuOpen(false);
-                    }}
+                    onClick={() => handleSubMenuItemClick('notifications')}
                     collapsed={false}
                   />
                 </ul>
