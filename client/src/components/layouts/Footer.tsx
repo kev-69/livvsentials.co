@@ -1,95 +1,238 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { MapPin, Mail, Phone, Lock, Headphones } from 'lucide-react';
+import { get } from '../../lib/api';
+
+interface ContactInfo {
+  email: string;
+  phone: string;
+  address: string;
+  socialMedia: {
+    facebook: string;
+    instagram: string;
+    snapchat: string;
+    tiktok: string;
+  }
+}
+
+const defaultContactInfo: ContactInfo = {
+  email: "hello@livssentials.co",
+  phone: "+1 (234) 567-890",
+  address: "123 Fashion Street, Design District, New York, NY 10001",
+  socialMedia: {
+    facebook: "#",
+    instagram: "#",
+    snapchat: "#",
+    tiktok: "#"
+  }
+};
+
+// Custom SVG icon components
+const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+  </svg>
+);
+
+const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+  </svg>
+);
+
+const SnapchatIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M12 2a9.65 9.65 0 0 0-3.071.44c-.022.008-.043.017-.065.026a3.146 3.146 0 0 0-1.4 1.168 3.12 3.12 0 0 0-.411 1.318c-.034.4-.054.793-.054 1.215 0 .475.022.96.022 1.453a1.243 1.243 0 0 1-.306.901c-.683.475-2.055.98-2.531 1.105a.556.556 0 0 0-.446.585c.011.162.077.317.19.425.28.264.475.343.673.423.215.088.444.183.602.367.088.105.162.237.175.372a.421.421 0 0 1-.064.256c-.292.607-1.033 1.876-2.97 2.133a.39.39 0 0 0-.336.41c.023.145.103.28.223.374.149.115.319.208.495.29a5.01 5.01 0 0 0 1.143.34c.066.148.154.608.264.9.088.23.307.401.683.401.409 0 .877-.176 1.435-.352.683-.215 1.523-.484 2.651-.484 1.06 0 1.838.251 2.453.47.635.229 1.177.426 1.622.426.334 0 .557-.155.658-.388.112-.32.198-.799.261-.938.335-.08.7-.184 1.062-.331.187-.076.358-.17.506-.285a.55.55 0 0 0 .22-.371.387.387 0 0 0-.344-.405c-1.946-.256-2.689-1.528-2.982-2.136a.425.425 0 0 1-.061-.254c.012-.135.085-.267.173-.371.16-.183.39-.278.606-.367.198-.08.394-.16.672-.424a.784.784 0 0 0 .19-.427.555.555 0 0 0-.447-.591c-.477-.125-1.848-.632-2.53-1.113a1.235 1.235 0 0 1-.31-.897c0-.492.024-.983.024-1.456 0-.422-.02-.814-.055-1.215-.034-.455-.166-.892-.411-1.318a3.066 3.066 0 0 0-1.397-1.162l-.068-.027A9.737 9.737 0 0 0 12 2"></path>
+  </svg>
+);
+
+const TikTokIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"></path>
+  </svg>
+);
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const [contactInfo, setContactInfo] = useState<ContactInfo>(defaultContactInfo);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchContactInfo = async () => {
+      try {
+        // Try to get from localStorage first for faster loading
+        const cachedInfo = localStorage.getItem('contactInfo');
+        if (cachedInfo) {
+          setContactInfo(JSON.parse(cachedInfo));
+          setLoading(false);
+        }
+
+        // Fetch from API
+        const response = await get('/settings/contact_info');
+        const data = response.data;
+
+        // Update state with the fetched data
+        const updatedInfo = {
+          email: data.settingValue.email || defaultContactInfo.email,
+          phone: data.settingValue.phone || defaultContactInfo.phone,
+          address: data.settingValue.address || defaultContactInfo.address,
+          socialMedia: {
+            facebook: data.settingValue.socialMedia?.facebook || defaultContactInfo.socialMedia.facebook,
+            instagram: data.settingValue.socialMedia?.instagram || defaultContactInfo.socialMedia.instagram,
+            snapchat: data.settingValue.socialMedia?.snapchat || defaultContactInfo.socialMedia.snapchat,
+            tiktok: data.settingValue.socialMedia?.tiktok || defaultContactInfo.socialMedia.tiktok
+          }
+        };
+        console.log('New info', updatedInfo);
+        
+        // console.log('Response', response);
+        
+        setContactInfo(updatedInfo);
+        
+        // Cache in localStorage for future use
+        localStorage.setItem('contactInfo', JSON.stringify(updatedInfo));
+        
+        setLoading(false);
+      } catch (error) {
+        console.error('Failed to fetch contact info:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchContactInfo();
+  }, []);
 
   return (
-    <footer className="bg-gray-800 text-white">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Brand and description */}
-          <div className="col-span-1 md:col-span-2">
-            <Link to="/" className="text-xl font-bold">
-              Livssentials
-            </Link>
-            <p className="mt-2 text-gray-400">
-              Quality essentials for your lifestyle. Shop our curated collection of products designed for modern living.
-            </p>
-          </div>
+    <footer>
+      {/* Main Footer */}
+      <div className="bg-[#efefef] text-black">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Section 1: Logo and Contact Info (Left) */}
+            <div>
+              <Link to="/" className="text-2xl font-bold text-black">
+                Livssentials
+              </Link>
+              <ul className="mt-6 space-y-4">
+                <li className="flex items-start space-x-3">
+                  <MapPin className="h-5 w-5 mt-1 flex-shrink-0" />
+                  <span className='hover:text-gray-700'>
+                    {contactInfo.address}
+                  </span>
+                </li>
+                <li className="flex items-center space-x-3">
+                  <Mail className="h-5 w-5 flex-shrink-0" />
+                  <a href="mailto:hello@livssentials.co" className="hover:text-gray-700">
+                    {contactInfo.email}
+                  </a>
+                </li>
+                <li className="flex items-center space-x-3">
+                  <Phone className="h-5 w-5 flex-shrink-0" />
+                  <a href="tel:+1234567890" className="hover:text-gray-700">
+                    {contactInfo.phone}
+                  </a>
+                </li>
+              </ul>
+            </div>
 
-          {/* Quick links */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
-              Shop
-            </h3>
-            <ul className="mt-4 space-y-4">
-              <li>
-                <Link to="/products" className="text-base text-gray-300 hover:text-white">
-                  All Products
-                </Link>
-              </li>
-              <li>
-                <Link to="/products?category=featured" className="text-base text-gray-300 hover:text-white">
-                  Featured
-                </Link>
-              </li>
-              <li>
-                <Link to="/products?category=new-arrivals" className="text-base text-gray-300 hover:text-white">
-                  New Arrivals
-                </Link>
-              </li>
-            </ul>
-          </div>
+            {/* Section 2: Quick Links (Middle) */}
+            <div>
+              <h3 className="text-lg font-semibold mb-6">
+                About Us
+              </h3>
+              <ul className="space-y-4">
+                <li>
+                  <Link to="/contact" className="hover:text-gray-700 transition">
+                    Contact
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/terms" className="hover:text-gray-700 transition">
+                    Terms & Conditions
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/about" className="hover:text-gray-700 transition">
+                    About
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/privacy" className="hover:text-gray-700 transition">
+                    Privacy Policy
+                  </Link>
+                </li>
+              </ul>
+            </div>
 
-          {/* Account */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
-              Account
-            </h3>
-            <ul className="mt-4 space-y-4">
-              <li>
-                <Link to="/account" className="text-base text-gray-300 hover:text-white">
-                  My Account
-                </Link>
-              </li>
-              <li>
-                <Link to="/account/orders" className="text-base text-gray-300 hover:text-white">
-                  Order History
-                </Link>
-              </li>
-              <li>
-                <Link to="/cart" className="text-base text-gray-300 hover:text-white">
-                  Cart
-                </Link>
-              </li>
-            </ul>
+            {/* Section 3: Features (Right) */}
+            <div>
+              <h3 className="text-lg font-semibold text-black mb-6">
+                Our Promise
+              </h3>
+              <div className="space-y-6">
+                <div className="flex items-start space-x-3">
+                  <Lock className="h-6 w-6 mt-1 flex-shrink-0" />
+                  <div>
+                    <h4 className="text-black font-medium">Secure Payment</h4>
+                    <p className="text-gray-700 text-sm mt-1">
+                      All transactions are processed through secure payment gateways to protect your personal information.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <Headphones className="h-6 w-6 mt-1 flex-shrink-0" />
+                  <div>
+                    <h4 className="text-black font-medium">24/7 Support</h4>
+                    <p className="text-gray-700 text-sm mt-1">
+                      Our dedicated support team is available around the clock to assist you with any questions or concerns.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+      </div>
 
-        <div className="mt-8 border-t border-gray-700 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-base text-gray-400">
-            &copy; {currentYear} Livssentials. All rights reserved.
-          </p>
-          <div className="mt-4 md:mt-0 flex space-x-6">
-            {/* Social Media Links */}
-            <a href="#" className="text-gray-400 hover:text-white">
-              <span className="sr-only">Facebook</span>
-              <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd" />
-              </svg>
-            </a>
-            <a href="#" className="text-gray-400 hover:text-white">
-              <span className="sr-only">Instagram</span>
-              <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path fillRule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z" clipRule="evenodd" />
-              </svg>
-            </a>
-            <a href="#" className="text-gray-400 hover:text-white">
-              <span className="sr-only">Twitter</span>
-              <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
-              </svg>
-            </a>
+      {/* Copyright and Socials Section - Slightly Different Color */}
+      <div className="bg-[#dfdfdf] text-black">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <p className="text-sm">
+              &copy; {currentYear} Livssentials. All rights reserved.
+            </p>
+            <div className="mt-4 md:mt-0 flex space-x-6">
+              {/* Social Media Links */}
+              {contactInfo.socialMedia.facebook && (
+              <a href={contactInfo.socialMedia.facebook} target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 transition">
+                <FacebookIcon className="h-6 w-6" />
+                <span className="sr-only">Facebook</span>
+              </a>
+              )}
+
+              {contactInfo.socialMedia.instagram && (
+              <a href={contactInfo.socialMedia.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 transition">
+                <InstagramIcon className="h-6 w-6" />
+                <span className="sr-only">Instagram</span>
+              </a>
+              )}
+
+              {contactInfo.socialMedia.tiktok && (
+              <a href={contactInfo.socialMedia.tiktok} target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 transition">
+                <TikTokIcon className="h-6 w-6" />
+                <span className="sr-only">TikTok</span>
+              </a>
+              )}
+
+              {contactInfo.socialMedia.snapchat && (
+              <a href={contactInfo.socialMedia.snapchat} target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 transition">
+                <SnapchatIcon className="h-6 w-6" />
+                <span className="sr-only">Snapchat</span>
+              </a>
+              )}
+            </div>
           </div>
         </div>
       </div>
