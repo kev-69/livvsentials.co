@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 // analytics
-import { analyticsController } from "../analytics/analytics.controller";
+import { analyticsController } from "./analytics.controller";
 
 // import middlewares
 import { isAdmin, validateToken } from "../../../middlewares/admin.middleware";
