@@ -2,7 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import path from "path";
 
-import { authController, loginAdmin } from "../auth/auth.controller";
+import { authController, loginAdmin } from "./auth.controller";
 import { isAdmin, validateToken } from "../../../middlewares/admin.middleware";
 
 const router = Router();
