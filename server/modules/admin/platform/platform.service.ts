@@ -17,6 +17,11 @@ export enum SettingKey {
 interface AppearanceSettings {
     primaryColor: string;
     secondaryColor: string;
+    accentColor: string;
+    textColor: string;
+    headingsFont: string;
+    bodyFont: string;
+    siteBanner: string;
 }
 
 interface SEOSettings {
@@ -188,8 +193,13 @@ export const settingsServices = {
         switch (key) {
             case SettingKey.APPEARANCE:
                 return {
-                    primaryColor: "#8B5CF6",
-                    secondaryColor: "#EC4899",
+                    primaryColor: "#4f46e5",
+                    secondaryColor: "#1e293b",
+                    accentColor: "#f59e0b",
+                    textColor: "#1f2937",
+                    headingsFont: "Montserrat, sans-serif",
+                    bodyFont: "Inter, sans-serif",
+                    siteBanner: "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
                 } as AppearanceSettings;
             case SettingKey.SEO:
                 return {
