@@ -3,7 +3,7 @@ import type { AxiosRequestConfig } from 'axios';
 
 // Create an axios instance
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -59,6 +59,11 @@ export const post = async (url: string, data?: any, config?: AxiosRequestConfig)
   return response.data;
 };
 
+export const patch = async (url: string, data?: any, config?: AxiosRequestConfig) => {
+  const response = await api.patch(url, data, config);
+  return response.data;
+};
+
 export const put = async (url: string, data?: any, config?: AxiosRequestConfig) => {
   const response = await api.put(url, data, config);
   return response.data;
@@ -67,4 +72,19 @@ export const put = async (url: string, data?: any, config?: AxiosRequestConfig) 
 export const del = async (url: string, config?: AxiosRequestConfig) => {
   const response = await api.delete(url, config);
   return response.data;
+};
+
+// Platform settings specific endpoints
+export const platformService = {
+  getAppearanceSettings: async () => {
+    return await get('/settings/appearance');
+  },
+  
+  getSEOSettings: async () => {
+    return await get('/settings/seo');
+  },
+  
+  getContactInfo: async () => {
+    return await get('/settings/contact_info');
+  },
 };
