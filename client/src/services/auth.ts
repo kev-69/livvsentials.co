@@ -16,37 +16,40 @@ interface LoginResponse {
     firstName: string;
     lastName: string;
     role: string;
+    phone: string;
+    createdAt: string;
+    updatedAt: string;
   };
 }
 
 export const authService = {
   register: async (userData: RegisterData) => {
-    const response = await post('/auth/register', userData);
-    return response.data;
+    // Remove .data as it's already returned by the post function
+    return await post('/auth/register', userData);
   },
 
   login: async (email: string, password: string): Promise<LoginResponse> => {
-    const response = await post('/auth/login', { email, password });
-    return response.data;
+    // Remove .data as it's already returned by the post function
+    return await post('/auth/login', { email, password });
   },
 
   forgotPassword: async (email: string) => {
-    const response = await post('/auth/forgot-password', { email });
-    return response.data;
+    // Remove .data as it's already returned by the post function
+    return await post('/auth/forgot-password', { email });
   },
 
   resetPassword: async (token: string, password: string, confirmPassword: string) => {
-    const response = await post('/auth/reset-password', { token, password, confirmPassword });
-    return response.data;
+    // Remove .data as it's already returned by the post function
+    return await post('/auth/reset-password', { token, password, confirmPassword });
   },
 
   getCurrentUser: async () => {
-    const response = await get('/auth/me');
-    return response.data;
+    // Remove .data as it's already returned by the get function
+    return await get('/auth/me');
   },
 
   updateProfile: async (userData: Partial<RegisterData>) => {
-    const response = await post('/auth/update-profile', userData);
-    return response.data;
+    // Remove .data as it's already returned by the post function
+    return await post('/auth/update-profile', userData);
   }
 };
