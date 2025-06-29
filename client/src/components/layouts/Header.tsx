@@ -14,7 +14,7 @@ const Header = () => {
           {/* Section 1: Logo (Left) */}
           <div className="flex-shrink-0 w-1/3 flex justify-start">
             <Link to="/" className="text-xl font-bold">
-              Livssentials
+              LIVSSENTIALS
             </Link>
           </div>
 
@@ -27,7 +27,7 @@ const Header = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/products" className="text-gray-900 hover:text-gray-600 font-medium">
+                <Link to="/shop" className="text-gray-900 hover:text-gray-600 font-medium">
                   SHOP
                 </Link>
               </li>
@@ -41,15 +41,15 @@ const Header = () => {
 
           {/* Section 3: Icons (Right) */}
           <div className="w-1/3 flex items-center justify-end space-x-3">
-            {/* Wishlist Icon */}
+            {/* Wishlist Icon - Redirects to auth if not logged in */}
             <Link
-              to="/wishlist"
+              to={isAuthenticated ? "/wishlist" : "/auth?redirect=/wishlist"}
               className="rounded-full p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
             >
               <Heart className="h-5 w-5" />
             </Link>
 
-            {/* Cart Icon */}
+            {/* Cart Icon - Always accessible */}
             <Link
               to="/cart"
               className="rounded-full p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
@@ -58,21 +58,12 @@ const Header = () => {
             </Link>
 
             {/* Account Icon */}
-            {isAuthenticated ? (
-              <Link
-                to="/account"
-                className="rounded-full p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-              >
-                <User className="h-5 w-5" />
-              </Link>
-            ) : (
-              <Link
-                to="/auth"
-                className="rounded-full p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-              >
-                <User className="h-5 w-5" />
-              </Link>
-            )}
+            <Link
+              to={isAuthenticated ? "/account" : "/auth"}
+              className="rounded-full p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+            >
+              <User className="h-5 w-5" />
+            </Link>
 
             {/* Mobile menu button - Only visible on mobile */}
             <div className="md:hidden">
@@ -104,7 +95,7 @@ const Header = () => {
               HOME
             </Link>
             <Link
-              to="/products"
+              to="/shop"
               className="block px-3 py-2 text-base font-medium text-gray-900 hover:bg-gray-100 hover:text-gray-600"
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -117,7 +108,7 @@ const Header = () => {
             >
               GALLERY
             </Link>
-            {isAuthenticated && (
+            {isAuthenticated ? (
               <button
                 onClick={() => {
                   logout();
@@ -125,8 +116,16 @@ const Header = () => {
                 }}
                 className="block w-full px-3 py-2 text-left text-base font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900"
               >
-                Sign Out
+                SIGN OUT
               </button>
+            ) : (
+              <Link
+                to="/auth"
+                className="block px-3 py-2 text-base font-medium text-gray-900 hover:bg-gray-100 hover:text-gray-600"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                SIGN IN
+              </Link>
             )}
           </div>
         )}
