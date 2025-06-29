@@ -1,64 +1,18 @@
 import { useEffect, useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { ThemeContext } from '../context/ThemeContext';
-
-// Define product interface
-interface Product {
-  id: string;
-  name: string;
-  slug: string;
-  price: number;
-  image: string;
-}
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Home = () => {
-  const { colors, fonts, images, isLoading: themeLoading } = useContext(ThemeContext);
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // Mock featured products - will be replaced with API call
-  useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setFeaturedProducts([
-        {
-          id: '1',
-          name: 'Classic White T-Shirt',
-          slug: 'classic-white-t-shirt',
-          price: 29.99,
-          image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-        },
-        {
-          id: '2',
-          name: 'Everyday Jeans',
-          slug: 'everyday-jeans',
-          price: 59.99,
-          image: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-        },
-        {
-          id: '3',
-          name: 'Minimalist Watch',
-          slug: 'minimalist-watch',
-          price: 89.99,
-          image: 'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-        },
-        {
-          id: '4',
-          name: 'Leather Backpack',
-          slug: 'leather-backpack',
-          price: 119.99,
-          image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-        },
-      ]);
-      setLoading(false);
-    }, 500);
-  }, []);
+  const { images, isLoading: themeLoading } = useContext(ThemeContext);
+  // const [ setFeaturedProducts] = useState<Product[]>([]);
+  // const [ setLoading] = useState(true);
 
   return (
     <div>
       {/* Hero Section */}
       <section 
-        className="relative bg-cover bg-center h-[500px]" 
+        className="relative bg-cover bg-center h-[600px]" 
         style={{ backgroundImage: `url(${images.banner})` }}
       >
         <div className="absolute inset-0 bg-black bg-opacity-50"></div>
@@ -76,43 +30,75 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Featured Products Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8">
-        <div className="container mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">Featured Products</h2>
-          
-          {loading ? (
-            <div className="flex justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      {/* test hero section */}
+      <section className='mt-10'>
+        <h1 className='text-center text-4xl underline'>COLLECTIONS</h1>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-100 rounded-xl">
+        {/* Left Large Card */}
+        <div className="relative md:col-span-2 bg-[#f1f5f9] rounded-xl p-8 flex flex-col md:flex-row items-center justify-between">
+          <div className="max-w-lg">
+            <h1 className="text-2xl font-bold leading-tight mb-4">
+              PACK OF THREE BASIC
+            </h1>
+            <h2 className='text-3xl font-thin'>Tshirts</h2>
+            <a href="#" className="underline font-semibold text-sm">
+              SHOP NOW
+            </a>
+          </div>
+          <img
+            src="https://res.cloudinary.com/dxykzipbv/image/upload/v1750584837/livssentials-products/ainbumtjknlntfqlynr1.avif"
+            alt="Fuego Bag"
+            className="h-[400px] object-contain"
+          />
+
+          {/* Arrows */}
+          <button className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white p-2 rounded-full shadow">
+            <ChevronLeft size={20} />
+          </button>
+          <button className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white p-2 rounded-full shadow">
+            <ChevronRight size={20} />
+          </button>
+        </div>
+
+          {/* Right Column */}
+          <div className="flex flex-col gap-4 mt-16">
+            {/* Top card */}
+            <div className="relative bg-white rounded-xl p-6 flex items-center justify-between shadow">
+              <div>
+                <h1 className="text-2xl font-semibold">PACK OF THREE</h1>
+                <h2 className='text-3xl'>Polo</h2>
+                <a href="#" className="underline text-sm font-medium">
+                  SHOP NOW
+                </a>
+              </div>
+              <img
+                src="https://res.cloudinary.com/dxykzipbv/image/upload/v1750584696/livssentials-products/wygf1ypnw6h9y8udosnf.jpg"
+                alt="T-Shirts"
+                className="h-28"
+              />
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {featuredProducts.map((product: any) => (
-                <Link to={`/products/${product.slug}`} key={product.id} className="group">
-                  <div className="bg-gray-100 rounded-lg overflow-hidden aspect-square mb-4">
-                    <img 
-                      src={product.image} 
-                      alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                  <h3 className="font-medium text-lg">{product.name}</h3>
-                  <p className="text-gray-700">${product.price.toFixed(2)}</p>
-                </Link>
-              ))}
+
+            {/* Bottom card */}
+            <div className="relative bg-white rounded-xl p-6 flex items-center justify-between shadow">
+            <div>
+              <h1 className="text-2xl font-semibold leading-snug">
+                DURABLE AND SPACIOUS
+              </h1>
+              <h2 className='text-3xl'>Backpacks</h2>
+              <a href="#" className="underline text-sm font-medium">
+                SHOP NOW
+              </a>
             </div>
-          )}
-          
-          <div className="text-center mt-12">
-            <Link
-              to="/products"
-              className="btn-primary inline-block px-8 py-3 rounded-md hover:bg-opacity-90 transition"
-            >
-              View All Products
-            </Link>
+            <img
+              src="https://res.cloudinary.com/dxykzipbv/image/upload/v1750584576/livssentials-products/ldqw8b9uonzmkopocik9.jpg"
+              alt="Backpack"
+              className="h-28"
+            />
+            </div>
           </div>
         </div>
       </section>
+      
 
       {/* Features Section */}
       <section className="bg-gray-50 py-16 px-4 sm:px-6 lg:px-8">
@@ -120,7 +106,7 @@ const Home = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="bg-accent bg-opacity-20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
@@ -130,7 +116,7 @@ const Home = () => {
             
             <div className="text-center">
               <div className="bg-accent bg-opacity-20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
@@ -140,7 +126,7 @@ const Home = () => {
             
             <div className="text-center">
               <div className="bg-accent bg-opacity-20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
               </div>
