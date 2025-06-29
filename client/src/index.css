@@ -1,5 +1,10 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* Import other CSS after Tailwind */
+/* @import "tw-animate-css"; */
 
 :root {
   /* Default theme variables - will be overridden by JS */
@@ -9,6 +14,7 @@
   --color-text: #1f2937;
   
   --font-headings: 'Montserrat', sans-serif;
+  --styled-header: 'Parisienne', cursive;
   --font-body: 'Inter', sans-serif;
 }
 
@@ -18,8 +24,12 @@ body {
   color: var(--color-text);
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1, h3, h4, h5, h6 {
   font-family: var(--font-headings);
+}
+
+h2 {
+  font-family: var(--styled-header);
 }
 
 /* Define utility classes that use our theme variables */
@@ -28,8 +38,16 @@ h1, h2, h3, h4, h5, h6 {
     background-color: var(--color-primary);
   }
 
+  .bg-primary:hover {
+    opacity: 0.9;
+  }
+
   .bg-secondary {
     background-color: var(--color-secondary);
+  }
+
+  .bg-secondary:hover {
+    opacity: 0.9;
   }
 
   .bg-accent {
