@@ -18,6 +18,7 @@ interface AppearanceSettingsProps {
     fonts: {
       body: string;
       heading: string;
+      styledHeader: string;
     }
   };
   onChange: (key: string, value: any) => void;
@@ -37,7 +38,9 @@ const commonFonts = [
   { name: 'Sora', value: 'Sora' },
   { name: 'Source Sans Pro', value: 'Source Sans Pro' },
   { name: 'Text Me One', value: 'Text Me One' },
-  { name: 'Julius Sans One', value: 'Julius Sans One' }
+  { name: 'Julius Sans One', value: 'Julius Sans One' },
+  { name: 'Parisienne', value: 'Parisienne' },
+  { name: 'Sacramento', value: 'Sacramento' },
 ];
 
 const AppearanceSettings = ({ settings, onChange }: AppearanceSettingsProps) => {
@@ -98,7 +101,7 @@ const AppearanceSettings = ({ settings, onChange }: AppearanceSettingsProps) => 
     }
   };
 
-  const handleFontChange = (type: 'body' | 'heading', value: string) => {
+  const handleFontChange = (type: 'body' | 'heading' | 'styledHeader', value: string) => {
     onChange('fonts', {
       ...settings.fonts,
       [type]: value
@@ -109,10 +112,11 @@ const AppearanceSettings = ({ settings, onChange }: AppearanceSettingsProps) => 
     // Get selected fonts or defaults
     const headingFont = settings.fonts?.heading || 'Inter';
     const bodyFont = settings.fonts?.body || 'Roboto';
+    const styledHeader = settings.fonts?.styledHeader || 'Sacramento'
     
     // Create link elements for Google Fonts
     const link = document.createElement('link');
-    link.href = `https://fonts.googleapis.com/css2?family=${headingFont.replace(' ', '+')}&family=${bodyFont.replace(' ', '+')}&display=swap`;
+    link.href = `https://fonts.googleapis.com/css2?family=${headingFont.replace(' ', '+')}&family=${bodyFont.replace(' ', '+')}&family=${styledHeader.replace(' ', '+')}&display=swap`;
     link.rel = 'stylesheet';
     document.head.appendChild(link);
     
@@ -246,6 +250,28 @@ const AppearanceSettings = ({ settings, onChange }: AppearanceSettingsProps) => 
             </Select>
             <p className="text-xs text-muted-foreground mt-1">
               Used for paragraph text and general content
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="styled-header">Styled Heading</Label>
+            <Select 
+              value={settings.fonts?.styledHeader || 'Sacramento'} 
+              onValueChange={(value) => handleFontChange('styledHeader', value)}
+            >
+              <SelectTrigger id="styled-header">
+                <SelectValue placeholder="Select styled header font" />
+              </SelectTrigger>
+              <SelectContent>
+                {commonFonts.map((font) => (
+                  <SelectItem key={font.value} value={font.value}>
+                    <span style={{ fontFamily: font.value }}>{font.name}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground mt-1">
+              Used for styles texts
             </p>
           </div>
         </div>
