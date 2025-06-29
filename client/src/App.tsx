@@ -6,11 +6,11 @@ import { ThemeProvider } from './context/ThemeContext';
 
 // Pages
 import Home from './pages/Home';
-// import Products from './pages/Products';
+import Shop from './pages/Shop';
 // import ProductDetail from './pages/ProductDetail';
 // import Cart from './pages/Cart';
 // import Checkout from './pages/Checkout';
-// import Account from './pages/Account';
+import Account from './pages/Account';
 import Auth from './pages/Auth';
 // import OrderSuccess from './pages/OrderSuccess';
 
@@ -29,11 +29,11 @@ function App() {
               <Routes>
                 <Route element={<MainLayout />}>
                   <Route path="/" element={<Home />} />
-                  {/* <Route path="/products" element={<Products />} /> */}
+                  <Route path="/shop" element={<Shop />} />
                   {/* <Route path="/products/:slug" element={<ProductDetail />} /> */}
                   {/* <Route path="/cart" element={<Cart />} /> */}
                   {/* <Route path="/checkout" element={<Checkout />} /> */}
-                  {/* <Route path="/account" element={<Account />} /> */}
+                  <Route path="/account" element={<Account />} />
                   <Route path="/auth" element={<Auth />} />
                   {/* <Route path="/order-success" element={<OrderSuccess />} /> */}
                 </Route>
