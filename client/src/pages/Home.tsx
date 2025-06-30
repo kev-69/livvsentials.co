@@ -5,8 +5,6 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Home = () => {
   const { images, isLoading: themeLoading } = useContext(ThemeContext);
-  // const [ setFeaturedProducts] = useState<Product[]>([]);
-  // const [ setLoading] = useState(true);
 
   return (
     <div>
