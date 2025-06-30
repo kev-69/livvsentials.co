@@ -1,10 +1,12 @@
 import { useContext, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
+import { useCart } from '../../context/CartContext';
 import { ShoppingCart, User, Menu, X, Heart } from 'lucide-react';
 
 const Header = () => {
   const { user, isAuthenticated, logout } = useContext(AuthContext);
+  const { totalItems, toggleCart } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -50,16 +52,21 @@ const Header = () => {
             </Link>
 
             {/* Cart Icon - Always accessible */}
-            <Link
-              to="/cart"
-              className="rounded-full p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+            <button
+              onClick={toggleCart}
+              className="rounded-full p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 relative"
             >
               <ShoppingCart className="h-5 w-5" />
-            </Link>
+              {totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {totalItems > 9 ? '9+' : totalItems}
+                </span>
+              )}
+            </button>
 
             {/* Account Icon */}
             <Link
-              to={isAuthenticated ? "/account" : "/auth"}
+              to={isAuthenticated ? "/account" : "/auth?redirect=/account"}
               className="rounded-full p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
             >
               <User className="h-5 w-5" />
