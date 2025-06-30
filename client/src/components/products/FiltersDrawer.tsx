@@ -50,7 +50,7 @@ const FiltersDrawer = ({
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold">Filters</h2>
+          <h1 className="text-lg font-semibold">Filters</h1>
           <button 
             onClick={onClose}
             className="p-1 rounded-full hover:bg-gray-100"
