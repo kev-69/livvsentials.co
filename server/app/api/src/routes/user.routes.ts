@@ -6,6 +6,7 @@ import { orderRoutes } from '../../../../modules/users/orders/order.module';
 import { addressRoutes } from '../../../../modules/users/address/address.module';
 import { wishlistRoutes } from '../../../../modules/users/wishlist/wishlist.module';
 import { categoryRoutes } from '../../../../modules/users/categories/category.module';
+import { cartRoutes } from '../../../../modules/users/carts/cart.module';
 
 const router = Router();
 
@@ -38,6 +39,10 @@ router.use('/addresses',
 
 router.use('/wishlist',
     wishlistRoutes
+)
+
+router.use('/cart',
+    cartRoutes
 )
 
 export { router as userRoutes };
