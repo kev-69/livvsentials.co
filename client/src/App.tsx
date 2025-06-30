@@ -1,48 +1,44 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from './context/AuthContext';
-// import { CartProvider } from './context/CartContext';
 import { ThemeProvider } from './context/ThemeContext';
-
-// Pages
+import { AuthProvider } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
+import Header from './components/layouts/Header';
+import Footer from './components/layouts/Footer';
 import Home from './pages/Home';
 import Shop from './pages/Shop';
-// import ProductDetail from './pages/ProductDetail';
-// import Cart from './pages/Cart';
-// import Checkout from './pages/Checkout';
-import Account from './pages/Account';
+import Gallery from './pages/Gallery';
 import Auth from './pages/Auth';
-// import OrderSuccess from './pages/OrderSuccess';
-
-// Layout
-import MainLayout from './components/layouts/MainLayout';
-
-const queryClient = new QueryClient();
+import Account from './pages/Account';
+import Cart from './pages/Cart';
+import ProductDetails from './pages/ProductDetails';
+import CartDrawer from './components/cart/CartDrawer';
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AuthProvider>
-          {/* <CartProvider> */}
-            <Router>
-              <Routes>
-                <Route element={<MainLayout />}>
+    <ThemeProvider>
+      <AuthProvider>
+        <CartProvider>
+          <Router>
+            <div className="flex flex-col min-h-screen">
+              <Header />
+              <main className="flex-1">
+                <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/shop" element={<Shop />} />
-                  {/* <Route path="/products/:slug" element={<ProductDetail />} /> */}
-                  {/* <Route path="/cart" element={<Cart />} /> */}
-                  {/* <Route path="/checkout" element={<Checkout />} /> */}
-                  <Route path="/account" element={<Account />} />
+                  <Route path="/products/:slug" element={<ProductDetails />} />
+                  <Route path="/gallery" element={<Gallery />} />
                   <Route path="/auth" element={<Auth />} />
-                  {/* <Route path="/order-success" element={<OrderSuccess />} /> */}
-                </Route>
-              </Routes>
-            </Router>
-          {/* </CartProvider> */}
-        </AuthProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+                  <Route path="/account" element={<Account />} />
+                  <Route path="/cart" element={<Cart />} />
+                </Routes>
+              </main>
+              <Footer />
+              <CartDrawer />
+            </div>
+          </Router>
+        </CartProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
