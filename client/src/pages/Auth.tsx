@@ -92,9 +92,9 @@ const Auth = () => {
           
           {/* Form content */}
           <div className="p-6">
-            <h2 className="text-center text-2xl font-bold text-gray-900 mb-6">
+            <h1 className="text-center text-2xl font-bold text-gray-900 mb-6">
               {activeTab === 'login' ? 'Sign in to your account' : 'Create a new account'}
-            </h2>
+            </h1>
             
             {error && (
               <div className="rounded-md bg-red-50 p-4 mb-6">
