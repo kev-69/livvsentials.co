@@ -88,7 +88,7 @@ const ProfileTab = () => {
   return (
     <div>
       <Toaster position="top-center" />
-      <h2 className="text-xl font-semibold mb-6">Profile Information</h2>
+      <h1 className="text-xl font-semibold mb-6">Profile Information</h1>
       
       {error && (
         <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md">
