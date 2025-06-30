@@ -2,6 +2,7 @@ import { Heart, ShoppingCart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import type { Product } from '../../types/product';
+import { useWishlist } from '../../hooks/useWishlist';
 
 interface ProductCardProps {
   product: Product;
@@ -10,6 +11,9 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product, onAddToWishlist, onAddToCart }: ProductCardProps) => {
+  const { isInWishlist } = useWishlist();
+  const inWishlist = isInWishlist(product.id);
+  
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
@@ -36,10 +40,10 @@ const ProductCard = ({ product, onAddToWishlist, onAddToCart }: ProductCardProps
         <div className="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <button 
             onClick={() => onAddToWishlist(product.id)} 
-            className="bg-white rounded-full p-2 shadow-md hover:bg-gray-100 mb-2"
-            aria-label="Add to wishlist"
+            className={`rounded-full p-2 shadow-md hover:bg-gray-100 mb-2 ${inWishlist ? 'bg-pink-100' : 'bg-white'}`}
+            aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
           >
-            <Heart className="h-4 w-4 text-gray-700" />
+            <Heart className={`h-4 w-4 ${inWishlist ? 'text-pink-500 fill-pink-500' : 'text-gray-700'}`} />
           </button>
         </div>
         
