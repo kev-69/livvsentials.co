@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { authController } from './auth.controller';
-// import middlewares
 
 const router = Router();
 
@@ -12,6 +11,7 @@ import {
     setNewPasswordSchema,
     // verifyEmailSchema,
 } from './auth.schema';
+import { validateToken } from '../../../middlewares/user.middleware';
 
 router.post('/register', 
     sanitizeInput,
@@ -27,20 +27,33 @@ router.post('/login',
     authController.login
 );
 
-// set new password
-router.post('/reset-password', 
-    sanitizeInput,
-    // validate({ body: setNewPasswordSchema }), 
-    authController.setNewPassword
-);
-
-// get profile
-// /auth/me
+router.get('/me',
+    validateToken,
+    authController.getUserProfile
+)
 
 // update profile
-// /auth/update-profile
+router.patch('/update-profile', 
+    sanitizeInput,
+    validateToken,
+    authController.updateProfile
+);
 
-// forgot password
-// /auth/forgot-password
+// change password
+router.patch('/change-password', 
+    sanitizeInput,
+    validateToken,
+    authController.changePassword
+);
+
+// set new password
+// router.post('/reset-password', 
+//     sanitizeInput,
+//     // validate({ body: setNewPasswordSchema }), 
+//     authController.setNewPassword
+// );
+
+// request password reset
+// /auth/request-password-reset
 
 export const authRoutes = router;
