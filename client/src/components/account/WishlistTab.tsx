@@ -1,68 +1,19 @@
-import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { get, del } from '../../lib/api';
 import { Trash2, ShoppingCart } from 'lucide-react';
-import { toast, Toaster } from 'sonner';
-
-interface WishlistItem {
-  id: string;
-  productId: string;
-  product: {
-    id: string;
-    name: string;
-    slug: string;
-    price: number;
-    salePrice: number | null;
-    productImages: string[];
-  };
-}
+import { Toaster } from 'sonner';
+import { useWishlist } from '../../hooks/useWishlist';
+import { useCart } from '../../hooks/useCart';
 
 const WishlistTab = () => {
-  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  
-  const fetchWishlist = async () => {
-    try {
-      setLoading(true);
-      const response = await get('/wishlist');
-      setWishlistItems(response);
-    } catch (error) {
-      setError('Failed to load wishlist');
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  useEffect(() => {
-    fetchWishlist();
-  }, []);
+  const { wishlistItems, loading, error, removeFromWishlist } = useWishlist();
+  const { addToCart } = useCart();
   
   const handleRemoveFromWishlist = async (productId: string) => {
-    try {
-      // Pass the product ID to the API endpoint as that's what your backend expects
-      await del(`/wishlist/${productId}`);
-      
-      // Filter using the wishlist item's ID (not the product ID)
-      setWishlistItems(prev => prev.filter(item => item.id !== productId));
-      
-      // Show success toast
-      toast.success('Item removed from wishlist');
-    } catch (error) {
-      toast.error('Failed to remove item from wishlist');
-      console.error(error);
-    }
+    await removeFromWishlist(productId);
   };
   
   const handleAddToCart = async (productId: string) => {
-    try {
-      await get(`/cart/add/${productId}`);
-      toast.success('Item added to cart');
-    } catch (error) {
-      toast.error('Failed to add item to cart');
-      console.error(error);
-    }
+    await addToCart(productId, 1);
   };
   
   if (loading) {
@@ -84,7 +35,7 @@ const WishlistTab = () => {
   if (wishlistItems.length === 0) {
     return (
       <div className="text-center py-8">
-        <h2 className="text-xl font-semibold mb-4">Your Wishlist is Empty</h2>
+        <h1 className="text-xl font-semibold mb-4">Your Wishlist is Empty</h1>
         <p className="text-gray-600 mb-6">Save items you love for later.</p>
         <Link 
           to="/shop" 
@@ -99,7 +50,7 @@ const WishlistTab = () => {
   return (
     <div>
       <Toaster position="top-center" />
-      <h2 className="text-xl font-semibold mb-6">Your Wishlist</h2>
+      <h1 className="text-xl font-semibold mb-6">Your Wishlist</h1>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {wishlistItems.map((item) => (
