@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { AxiosRequestConfig } from 'axios';
+import Cookies from 'js-cookie';
 
 // Create an axios instance
 const api = axios.create({
@@ -7,6 +8,8 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  // Enable cookies for all requests
+  withCredentials: true
 });
 
 // Add a request interceptor
@@ -30,16 +33,33 @@ api.interceptors.request.use(
 // Add a response interceptor
 api.interceptors.response.use(
   (response) => {
+    // For guest cart: check if there's a session ID in the response and store it
+    if (response.data && response.data.sessionId && !localStorage.getItem('token')) {
+      Cookies.set('cartSessionId', response.data.sessionId, { 
+        expires: 30, // 30 days
+        path: '/',
+        sameSite: 'lax'
+      });
+    }
     return response;
   },
   (error) => {
+    // Check if this is a cart-related path
+    const cartPaths = ['/cart', '/checkout', '/orders'];
+    const isCartPath = cartPaths.some(path => 
+      error.config && error.config.url && error.config.url.includes(path)
+    );
+    
     // Handle 401 errors (unauthorized)
     if (error.response && error.response.status === 401) {
-      // Clear token
-      localStorage.removeItem('token');
-      
-      // Redirect to login
-      window.location.href = '/auth?redirect=' + window.location.pathname;
+      // Don't redirect for cart/public operations if the user is not logged in
+      if (!isCartPath) {
+        // Clear token
+        localStorage.removeItem('token');
+        
+        // Redirect to login
+        window.location.href = '/auth?redirect=' + window.location.pathname;
+      }
     }
     
     return Promise.reject(error);
