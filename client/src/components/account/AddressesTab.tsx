@@ -77,7 +77,10 @@ const AddressesTab = () => {
         region: '',
       });
       setIsAddingAddress(false);
-      toast.success('Address added successfully');
+      toast.success('Address added successfully', {
+        icon: '✅',
+        style: { backgroundColor: '#ECFDF5', color: '#065F46' }
+      });
     } catch (error) {
       setError('Failed to add address');
       toast.error('Failed to add address');
@@ -88,7 +91,9 @@ const AddressesTab = () => {
   const handleDeleteAddress = async (id: string) => {
     toast('Are you sure you want to delete this address?', {
       description: 'This action cannot be undone.',
-      action: {
+      icon: '⚠️',
+      duration: 5000,
+        action: {
         label: 'Delete',
         onClick: async () => {
           toast.dismiss();
@@ -111,7 +116,7 @@ const AddressesTab = () => {
     <div>
       <Toaster position="top-center" />
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">Your Addresses</h2>
+        <h1 className="text-xl font-semibold">Your Addresses</h1>
         
         {!isAddingAddress && (
           <button
