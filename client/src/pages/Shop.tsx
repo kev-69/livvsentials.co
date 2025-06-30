@@ -1,7 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useContext } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
-import { get } from '../lib/api';
+import { get, post } from '../lib/api';
+import { useCart } from '../hooks/useCart';
+import { useWishlist } from '../hooks/useWishlist';
+import { AuthContext } from '../context/AuthContext';
 
 // Import types
 import type { Product, Category } from '../types/product';
@@ -12,6 +15,7 @@ import FiltersBar from '../components/products/FiltersBar';
 import FiltersDrawer from '../components/products/FiltersDrawer';
 import ProductsGrid from '../components/products/ProductsGrid';
 import Pagination from '../components/products/Pagination';
+import { toast, Toaster } from 'sonner';
 
 const Shop = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -20,6 +24,9 @@ const Shop = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { addToCart } = useCart();
+  const { toggleWishlistItem } = useWishlist();
+  const { isAuthenticated } = useContext(AuthContext);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -172,23 +179,31 @@ const Shop = () => {
   
   // Handle add to wishlist
   const handleAddToWishlist = async (productId: string) => {
+    if (!isAuthenticated) {
+      toast.error('Please log in to add items to your wishlist', {
+        icon: '🔒',
+        style: { backgroundColor: '#FEE2E2', color: '#B91'},
+        action: {
+          label: 'Log In',
+          onClick: () => window.location.href = '/auth'
+        }
+      });
+      return;
+    }
+    
     try {
-      await get(`/wishlist/${productId}`);
-      // TODO: Add success toast notification
+      await toggleWishlistItem(productId);
     } catch (error) {
-      console.error('Error adding to wishlist:', error);
-      // TODO: Add error toast notification
+      console.error(error);
     }
   };
   
   // Handle add to cart
   const handleAddToCart = async (productId: string) => {
     try {
-      await get(`/cart/${productId}`);
-      // TODO: Add success toast notification
+      await addToCart(productId, 1);
     } catch (error) {
-      console.error('Error adding to cart:', error);
-      // TODO: Add error toast notification
+      console.error(error);
     }
   };
   
@@ -214,8 +229,8 @@ const Shop = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      {/* Hero Banner with Search */}
-      <ShopHero 
+      <Toaster position='top-center'/>
+      <ShopHero
         searchInputRef={searchInputRef}
         defaultSearchValue={searchQuery}
         onSearch={handleSearch}
