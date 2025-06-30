@@ -93,7 +93,7 @@ const OrdersTab = () => {
   if (orders.length === 0) {
     return (
       <div className="text-center py-8">
-        <h2 className="text-xl font-semibold mb-4">No Orders Yet</h2>
+        <h1 className="text-xl font-semibold mb-4">No Orders Yet</h1>
         <p className="text-gray-600 mb-6">You haven't placed any orders yet.</p>
         <Link 
           to="/shop" 
@@ -107,7 +107,7 @@ const OrdersTab = () => {
   
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-6">Your Orders</h2>
+      <h1 className="text-xl font-semibold mb-6">Your Orders</h1>
       
       <div className="space-y-6">
         {orders.map((order) => (
