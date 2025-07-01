@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, useCallback } from 'react';
+import { useContext, useCallback } from 'react';
 import { post, get, del, put } from '../lib/api';
 import { CartContext } from '../context/CartContext';
 import { AuthContext } from '../context/AuthContext';
