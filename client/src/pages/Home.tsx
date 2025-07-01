@@ -19,7 +19,7 @@ const Home = () => {
             <h1 className="text-4xl md:text-5xl font-bold mb-4">Quality Essentials for Everyday Living</h1>
             <p className="text-xl mb-8 max-w-2xl mx-auto">Discover our curated collection of products designed to enhance your lifestyle.</p>
             <Link
-              to="/products"
+              to="/shop"
               className="btn-primary inline-block px-8 py-3 rounded-md hover:bg-opacity-90 transition"
             >
               Shop Now
@@ -28,7 +28,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* test hero section */}
+      {/* popular collections */}
       <section className='mt-10'>
         <h1 className='text-center text-4xl underline'>COLLECTIONS</h1>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-100 rounded-xl">
@@ -39,7 +39,7 @@ const Home = () => {
               PACK OF THREE BASIC
             </h1>
             <h2 className='text-3xl font-thin'>Tshirts</h2>
-            <a href="#" className="underline font-semibold text-sm">
+            <a href="#" className="underline text-sm font-medium">
               SHOP NOW
             </a>
           </div>
