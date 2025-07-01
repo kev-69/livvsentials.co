@@ -2,18 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Mail, Phone, Lock, Headphones } from 'lucide-react';
 import { get } from '../../lib/api';
-
-interface ContactInfo {
-  email: string;
-  phone: string;
-  address: string;
-  socialMedia: {
-    facebook: string;
-    instagram: string;
-    snapchat: string;
-    tiktok: string;
-  }
-}
+import type { ContactInfo } from '../../types/platform';
 
 const defaultContactInfo: ContactInfo = {
   email: "hello@livssentials.co",
