@@ -1,30 +1,7 @@
 import { createContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { get } from '../lib/api';
-
-interface ThemeColors {
-  primary: string;
-  secondary: string;
-  accent: string;
-  text: string;
-}
-
-interface ThemeFonts {
-  headings: string;
-  body: string;
-}
-
-interface ThemeImages {
-  banner: string;
-}
-
-interface ThemeContextType {
-  colors: ThemeColors;
-  fonts: ThemeFonts;
-  images: ThemeImages;
-  isLoading: boolean;
-  error: string | null;
-}
+import type { ThemeContextType } from '../types/platform';
 
 const defaultTheme: ThemeContextType = {
   colors: {
@@ -89,12 +66,6 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
           isLoading: false,
           error: null,
         };
-        // console.log(response.data.settingValue.primaryColor);
-        // console.log(response.data.settingValue.secondaryColor);
-        // console.log(response.data.settingValue.accentColor);
-        // console.log(response.data.settingValue.textColor);
-        // console.log(response.data.settingValue.fonts);
-        // console.log(response.data.settingValue.siteBanner);
 
         // Update state with the new theme
         setTheme(themeData);
