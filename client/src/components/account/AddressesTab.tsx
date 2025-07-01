@@ -2,17 +2,7 @@ import { useState, useEffect } from 'react';
 import { get, post, del } from '../../lib/api';
 import { MapPin, Plus, Trash2 } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
-
-
-interface Address {
-  id: string;
-  streetName: string;
-  city: string;
-  postalCode: string;
-  region: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import type { Address } from '../../types/user';
 
 const AddressesTab = () => {
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -20,10 +10,12 @@ const AddressesTab = () => {
   const [error, setError] = useState('');
   const [isAddingAddress, setIsAddingAddress] = useState(false);
   const [formData, setFormData] = useState({
+    fullName: '',
     streetName: '',
     city: '',
     postalCode: '',
     region: '',
+    phone: '',
   });
   
   useEffect(() => {
@@ -71,10 +63,12 @@ const AddressesTab = () => {
       const response = await post('/addresses', formData);
       setAddresses([...addresses, response]);
       setFormData({
+        fullName: '',
         streetName: '',
         city: '',
         postalCode: '',
         region: '',
+        phone: '',
       });
       setIsAddingAddress(false);
       toast.success('Address added successfully', {
@@ -83,7 +77,9 @@ const AddressesTab = () => {
       });
     } catch (error) {
       setError('Failed to add address');
-      toast.error('Failed to add address');
+      toast.error('Failed to add address', {
+        
+      });
       console.error(error);
     }
   };
@@ -141,6 +137,34 @@ const AddressesTab = () => {
           
           <form onSubmit={handleAddAddress}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Phone Number
+                </label>
+                <input
+                  type="text"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+                  required
+                />
+              </div>
+
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Street Address
