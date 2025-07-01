@@ -26,7 +26,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Loader2, ArrowUpDown } from "lucide-react";
 import { useState, useMemo } from "react";
-import type { CustomerDetails } from "@/components/tables/CustomersTable";
+import type { CustomerDetails, ShippingAddress } from "@/components/tables/CustomersTable";
 
 interface ViewUserOrdersProps {
   open: boolean;
@@ -59,6 +59,21 @@ const ViewUserOrders = ({
       month: 'short',
       day: 'numeric',
     });
+  };
+  
+  // Parse shipping address from JSON string
+  const parseShippingAddress = (addressString: string | ShippingAddress): ShippingAddress | null => {
+    try {
+      // If it's already a ShippingAddress object, return it
+      if (typeof addressString !== 'string') {
+        return addressString;
+      }
+      // Otherwise parse the JSON string
+      return addressString ? JSON.parse(addressString) : null;
+    } catch (error) {
+      console.error("Error parsing shipping address:", error);
+      return null;
+    }
   };
   
   // Status badge component
@@ -115,10 +130,25 @@ const ViewUserOrders = ({
     
     if (searchTerm) {
       const lowercasedSearch = searchTerm.toLowerCase();
-      result = result.filter(order => 
-        order.orderNumber.toLowerCase().includes(lowercasedSearch) ||
-        JSON.stringify(order.shippingAddress.toLowerCase().includes(lowercasedSearch)
-      );
+      result = result.filter(order => {
+        // Search in order number
+        if (order.orderNumber.toLowerCase().includes(lowercasedSearch)) {
+          return true;
+        }
+        
+        // Search in shipping address
+        try {
+          const shippingAddress = parseShippingAddress(order.shippingAddress);
+          if (shippingAddress) {
+            const addressString = `${shippingAddress.fullName} ${shippingAddress.streetName} ${shippingAddress.city} ${shippingAddress.region}`.toLowerCase();
+            return addressString.includes(lowercasedSearch);
+          }
+        } catch (error) {
+          // If there's an error parsing, continue with other checks
+        }
+        
+        return false;
+      });
     }
     
     if (statusFilter !== 'all') {
@@ -255,19 +285,31 @@ const ViewUserOrders = ({
                         </TableCell>
                       </TableRow>
                     ) : (
-                      filteredAndSortedOrders.map((order) => (
-                        <TableRow key={order.id}>
-                          <TableCell className="font-medium">{order.orderNumber}</TableCell>
-                          <TableCell>{formatDate(order.createdAt)}</TableCell>
-                          <TableCell>
-                            <OrderStatusBadge status={order.orderStatus} />
-                          </TableCell>
-                          <TableCell>{formatCurrency(order.totalAmount)}</TableCell>
-                          <TableCell className="max-w-[200px] truncate" title={order.shippingAddress}>
-                            {order.shippingAddress}
-                          </TableCell>
-                        </TableRow>
-                      ))
+                      filteredAndSortedOrders.map((order) => {
+                        const shippingAddress = parseShippingAddress(order.shippingAddress);
+                        
+                        return (
+                          <TableRow key={order.id}>
+                            <TableCell className="font-medium">{order.orderNumber}</TableCell>
+                            <TableCell>{formatDate(order.createdAt)}</TableCell>
+                            <TableCell>
+                              <OrderStatusBadge status={order.orderStatus} />
+                            </TableCell>
+                            <TableCell>{formatCurrency(order.totalAmount)}</TableCell>
+                            <TableCell className="max-w-[200px] truncate" 
+                              title={shippingAddress ? 
+                                `${shippingAddress.fullName}, ${shippingAddress.streetName}, ${shippingAddress.city}, ${shippingAddress.region} ${shippingAddress.postalCode}` : 
+                                'N/A'
+                              }
+                            >
+                              {shippingAddress ? 
+                                `${shippingAddress.fullName}, ${shippingAddress.city}` : 
+                                'N/A'
+                              }
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
                     )}
                   </TableBody>
                 </Table>
