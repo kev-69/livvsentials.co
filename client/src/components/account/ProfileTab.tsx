@@ -69,9 +69,13 @@ const ProfileTab = () => {
       await patch('/auth/change-password', {
         currentPassword: formData.currentPassword,
         newPassword: formData.newPassword,
+        confirmPassword: formData.confirmPassword
       });
       
-      toast.success('Password changed successfully');
+      toast.success('Password changed successfully', {
+        icon: '✅',
+        style: { backgroundColor: '#ECFDF5', color: '#065F46' }
+      });
       setFormData({
         ...formData,
         currentPassword: '',
