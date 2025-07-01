@@ -1,30 +1,9 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { get, post, put, del } from '../lib/api';
 import { useAuth } from '../hooks/useAuth';
-import type { Product } from '../types/product';
+import type { Cart } from '../types/cart';
 import { toast } from 'sonner';
 import Cookies from 'js-cookie';
-
-// Types adjusted to match backend
-export interface CartItem {
-  productId: string;
-  productName: string;
-  quantity: number;
-  price: number;
-  total: number;
-  product: Product;
-}
-
-interface Cart {
-  id: string;
-  userId?: string;
-  sessionId?: string;
-  cartItems: CartItem[];
-  subtotal: number;
-  itemCount: number;
-  createdAt: string;
-  updatedAt: string;
-}
 
 interface CartContextType {
   cart: Cart | null;
