@@ -66,13 +66,22 @@ export interface CustomerDetails {
   orders: CustomerOrder[]
 }
 
+export interface ShippingAddress {
+  fullName: string;
+  streetName: string;
+  city: string;
+  postalCode: string;
+  region: string;
+  phone: string;
+}
+
 export interface CustomerOrder {
   id: string;
   orderNumber: string;
   userId: string;
   totalAmount: number;
   orderStatus: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
-  shippingAddress: string;
+  shippingAddress: ShippingAddress;
   guestCheckout: boolean;
   orderItems: [];
   payments: [];
