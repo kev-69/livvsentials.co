@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ZoomIn, Instagram } from 'lucide-react';
+import type { GalleryImage } from '../types/platform';
 
 // Sample gallery images
 const sampleImages: GalleryImage[] = [
@@ -110,14 +111,6 @@ const sampleImages: GalleryImage[] = [
     height: 'medium'
   }
 ];
-
-interface GalleryImage {
-  id: number;
-  url: string;
-  alt: string;
-  tags: string[];
-  height: 'tall' | 'medium' | 'short';
-}
 
 const Gallery = () => {
   const [images, setImages] = useState<GalleryImage[]>([]);
