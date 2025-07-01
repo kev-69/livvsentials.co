@@ -117,7 +117,7 @@ const ViewUserOrders = ({
       const lowercasedSearch = searchTerm.toLowerCase();
       result = result.filter(order => 
         order.orderNumber.toLowerCase().includes(lowercasedSearch) ||
-        order.shippingAddress.toLowerCase().includes(lowercasedSearch)
+        JSON.stringify(order.shippingAddress.toLowerCase().includes(lowercasedSearch)
       );
     }
     
@@ -242,7 +242,7 @@ const ViewUserOrders = ({
                           )}
                         </div>
                       </TableHead>
-                      <TableHead>Shipping Address</TableHead>
+                      <TableHead>Shipped To</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
