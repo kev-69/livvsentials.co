@@ -52,7 +52,7 @@ const CartDrawer = () => {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'tween', duration: 0.3 }}
-            className="fixed top-0 right-0 h-full w-full sm:w-96 bg-white z-50 shadow-xl flex flex-col"
+            className="fixed top-0 right-0 h-full w-full max-w-xs bg-white z-50 shadow-xl flex flex-col"
           >
             {/* Header */}
             <div className="px-4 py-3 border-b flex items-center justify-between">
