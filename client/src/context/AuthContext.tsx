@@ -2,15 +2,7 @@ import { createContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 // import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth';
-
-interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: string;
-  phone: string;
-}
+import type { User, RegisterData } from '../types/user';
 
 interface AuthContextType {
   user: User | null;
@@ -22,13 +14,6 @@ interface AuthContextType {
   updateUserData: (userData: Partial<User>) => void;
 }
 
-interface RegisterData {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  phone: string;
-}
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
