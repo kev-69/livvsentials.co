@@ -2,23 +2,7 @@ import { useState, useEffect, useCallback, useContext } from 'react';
 import { get, post, del } from '../lib/api';
 import { toast } from 'sonner';
 import { AuthContext } from '../context/AuthContext';
-
-interface WishlistItem {
-  id: string;
-  productId: string;
-  product: {
-    id: string;
-    name: string;
-    slug: string;
-    price: number;
-    salePrice: number | null;
-    productImages: string[];
-    category: {
-      id: string;
-      name: string;
-    }
-  };
-}
+import type { WishlistItem } from '../types/product';
 
 export const useWishlist = () => {
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
@@ -130,6 +114,7 @@ export const useWishlist = () => {
     // Check if user is authenticated
     if (!isAuthenticated) {
       toast.error('Please log in to manage your wishlist', {
+        icon: '🔒',
         action: {
           label: 'Log In',
           onClick: () => window.location.href = '/auth'
