@@ -2,26 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { get } from '../../lib/api';
 import { Clock, Check, TruckIcon, XCircle } from 'lucide-react';
-
-interface OrderItem {
-  id: string;
-  product: {
-    name: string;
-    productImages: string[];
-  };
-  quantity: number;
-  price: number;
-}
-
-interface Order {
-  id: string;
-  orderNumber: string;
-  totalAmount: number;
-  shippingAddress: string;
-  orderStatus: 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
-  createdAt: string;
-  orderItems: OrderItem[];
-}
+import type { Order } from '../../types/order';
 
 const OrdersTab = () => {
   const [orders, setOrders] = useState<Order[]>([]);
