@@ -31,6 +31,15 @@ interface OrderItem {
   };
 }
 
+interface ShippingAddress {
+  fullName: string;
+  streetName: string;
+  city: string;
+  postalCode: string;
+  region: string;
+  phone: string;
+}
+
 interface ViewOrderProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -48,7 +57,7 @@ interface ViewOrderProps {
     updatedAt: string;
     totalAmount: number;
     orderStatus: string;
-    shippingAddress: string | null;
+    shippingAddress: string;
     payments: OrderPayment[];
     orderItems: OrderItem[];
     discount?: number;
@@ -127,6 +136,19 @@ const ViewOrder = ({ open, onOpenChange, order }: ViewOrderProps) => {
     }
   };
 
+  // Parse shipping address from JSON string
+  const parseShippingAddress = (): ShippingAddress | null => {
+    try {
+      return order.shippingAddress ? JSON.parse(order.shippingAddress) : null;
+    } catch (error) {
+      console.error("Error parsing shipping address:", error);
+      return null;
+    }
+  };
+
+  // Get shipping address as an object
+  const shippingAddress = parseShippingAddress();
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[650px] max-h-[90vh]">
@@ -163,14 +185,17 @@ const ViewOrder = ({ open, onOpenChange, order }: ViewOrderProps) => {
             </div>
             
             {/* Shipping Address */}
-            {order?.shippingAddress && (
+            {shippingAddress && (
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <h3 className="font-medium">Shipping Address</h3>
+                  <h3 className="font-medium">Shipped to</h3>
                 </div>
-                <div className="bg-muted/30 p-3 rounded-lg text-sm">
-                  <p>{order.shippingAddress}</p>
+                <div className="bg-muted/30 p-3 rounded-lg text-sm space-y-1">
+                  <p className="font-medium">{shippingAddress.fullName}</p>
+                  <p>{shippingAddress.streetName}</p>
+                  <p>{shippingAddress.city}, {shippingAddress.region} {shippingAddress.postalCode}</p>
+                  <p>Phone: {shippingAddress.phone}</p>
                 </div>
               </div>
             )}
