@@ -10,6 +10,7 @@ import Gallery from './pages/Gallery';
 import Auth from './pages/Auth';
 import Account from './pages/Account';
 import Cart from './pages/Cart';
+import Checkout from './pages/Checkout';
 import ProductDetails from './pages/ProductDetails';
 import CartDrawer from './components/cart/CartDrawer';
 
@@ -30,6 +31,7 @@ function App() {
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/account" element={<Account />} />
                   <Route path="/cart" element={<Cart />} />
+                  <Route path="/checkout" element={<Checkout />} />
                 </Routes>
               </main>
               <Footer />
