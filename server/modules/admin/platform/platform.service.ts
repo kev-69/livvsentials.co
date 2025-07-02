@@ -7,10 +7,9 @@ export enum SettingKey {
     APPEARANCE = "appearance",
     SEO = "seo",
     CONTACT_INFO = "contact_info",
-    SHIPPING = "shipping",
-    PAYMENT = "payment",
     EMAILS = "emails",
-    NOTIFICATIONS = "notifications"
+    NOTIFICATIONS = "notifications",
+    GALLERY = "gallery"
 }
 
 // Define interfaces for each setting type
@@ -20,6 +19,7 @@ interface AppearanceSettings {
     accentColor: string;
     textColor: string;
     headingsFont: string;
+    styledHeader: string;
     bodyFont: string;
     siteBanner: string;
 }
@@ -43,27 +43,13 @@ interface ContactInfoSettings {
     }
 }
 
-interface ShippingSettings {
-    enableFreeShipping: boolean;
-    freeShippingThreshold: number;
-    defaultShippingFee: number;
-    shippingRegions: {
-        name: string;
-        fee: number;
-    }[];
-}
-
-interface PaymentSettings {
-    enableMobileMoney: boolean;
-    enableCreditCard: boolean;
-    mobileMoneyProviders: string[];
-    paymentInstructions: string;
-}
-
-interface EmailSettings {
+interface MessageSettings {
     senderName: string;
-    senderEmail: string;
     templates: {
+        restock: {
+            subject: string;
+            body: string;
+        }
         orderConfirmation: {
             subject: string;
             body: string;
@@ -106,14 +92,20 @@ export const settingsServices = {
 
     async updateSetting(key: SettingKey, value: any) {
         try {
+            // Get the current setting or default if it doesn't exist
+            const currentSetting = await this.getSetting(key);
+            
+            // Merge the new values with existing ones
+            const updatedValue = { ...currentSetting, ...value };
+            
             // Validate the setting structure
-            this.validateSetting(key, value);
+            this.validateSetting(key, updatedValue);
 
             // Upsert the setting (update if exists, create if not)
             const setting = await prisma.platformSettings.upsert({
                 where: { settingKey: key },
-                update: { settingValue: value },
-                create: { settingKey: key, settingValue: value }
+                update: { settingValue: updatedValue },
+                create: { settingKey: key, settingValue: updatedValue }
             });
 
             return setting.settingValue;
@@ -140,6 +132,8 @@ export const settingsServices = {
             for (const key of settingKeys) {
                 if (settingsMap.has(key)) {
                     settings[key] = settingsMap.get(key);
+                } else {
+                    settings[key] = this.getDefaultSettings(key as SettingKey);
                 }
             }
 
@@ -151,38 +145,130 @@ export const settingsServices = {
     },
 
     validateSetting(key: SettingKey, value: any) {
-        // Add validation logic for each setting type
         switch (key) {
             case SettingKey.APPEARANCE:
-                if (!value.siteName) {
-                    throw new AppError("Site name is required", 400);
+                // Validate only provided fields instead of requiring all
+                if (value.primaryColor && typeof value.primaryColor !== 'string') {
+                    throw new AppError("primaryColor must be a string", 400);
+                }
+                if (value.secondaryColor && typeof value.secondaryColor !== 'string') {
+                    throw new AppError("secondaryColor must be a string", 400);
+                }
+                if (value.accentColor && typeof value.accentColor !== 'string') {
+                    throw new AppError("accentColor must be a string", 400);
+                }
+                if (value.textColor && typeof value.textColor !== 'string') {
+                    throw new AppError("textColor must be a string", 400);
+                }
+                if (value.headingsFont && typeof value.headingsFont !== 'string') {
+                    throw new AppError("headingsFont must be a string", 400);
+                }
+                if (value.bodyFont && typeof value.bodyFont !== 'string') {
+                    throw new AppError("bodyFont must be a string", 400);
+                }
+                if (value.styledHeader && typeof value.styledHeader !== 'string') {
+                    throw new AppError("styledHeader must be a string", 400);
+                }
+                if (value.siteBanner && typeof value.siteBanner !== 'string') {
+                    throw new AppError("siteBanner must be a string", 400);
                 }
                 break;
             case SettingKey.SEO:
-                if (!value.metaTitle || !value.metaDescription) {
-                    throw new AppError("Meta title and description are required", 400);
+                if (value.metaTitle && typeof value.metaTitle !== 'string') {
+                    throw new AppError("metaTitle must be a string", 400);
+                }
+                if (value.metaDescription && typeof value.metaDescription !== 'string') {
+                    throw new AppError("metaDescription must be a string", 400);
+                }
+                if (value.keywords && !Array.isArray(value.keywords)) {
+                    throw new AppError("keywords must be an array", 400);
                 }
                 break;
             case SettingKey.CONTACT_INFO:
-                if (!value.email || !value.phone) {
-                    throw new AppError("Email and phone are required", 400);
+                if (value.email && typeof value.email !== 'string') {
+                    throw new AppError("email must be a string", 400);
                 }
-                break;
-            case SettingKey.SHIPPING:
-                if (value.enableFreeShipping === undefined || value.defaultShippingFee === undefined) {
-                    throw new AppError("Shipping settings are incomplete", 400);
+                if (value.phone && typeof value.phone !== 'string') {
+                    throw new AppError("phone must be a string", 400);
                 }
-                break;
-            case SettingKey.PAYMENT:
-                // Add payment validation
+                if (value.address && typeof value.address !== 'string') {
+                    throw new AppError("address must be a string", 400);
+                }
+                if (value.googleMapsLink && typeof value.googleMapsLink !== 'string') {
+                    throw new AppError("googleMapsLink must be a string", 400);
+                }
+                if (value.socialMedia) {
+                    if (typeof value.socialMedia !== 'object') {
+                        throw new AppError("socialMedia must be an object", 400);
+                    }
+                    const { facebook, instagram, snapchat, tiktok } = value.socialMedia;
+                    if (facebook && typeof facebook !== 'string') {
+                        throw new AppError("facebook must be a string", 400);
+                    }
+                    if (instagram && typeof instagram !== 'string') {
+                        throw new AppError("instagram must be a string", 400);
+                    }
+                    if (snapchat && typeof snapchat !== 'string') {
+                        throw new AppError("snapchat must be a string", 400);
+                    }
+                    if (tiktok && typeof tiktok !== 'string') {
+                        throw new AppError("tiktok must be a string", 400);
+                    }
+                }
                 break;
             case SettingKey.EMAILS:
-                if (!value.senderEmail) {
-                    throw new AppError("Sender email is required", 400);
+                if (value.senderName && typeof value.senderName !== 'string') {
+                    throw new AppError("senderName must be a string", 400);
+                }
+                if (value.templates) {
+                    if (typeof value.templates !== 'object') {
+                        throw new AppError("templates must be an object", 400);
+                    }
+                    // Validate template structure if provided
+                    const validateTemplate = (template: any, name: string) => {
+                        if (!template) return;
+                        if (typeof template !== 'object') {
+                            throw new AppError(`${name} template must be an object`, 400);
+                        }
+                        if (template.subject && typeof template.subject !== 'string') {
+                            throw new AppError(`${name} subject must be a string`, 400);
+                        }
+                        if (template.body && typeof template.body !== 'string') {
+                            throw new AppError(`${name} body must be a string`, 400);
+                        }
+                    };
+                    
+                    if (value.templates.restock) {
+                        validateTemplate(value.templates.restock, 'restock');
+                    }
+                    if (value.templates.orderConfirmation) {
+                        validateTemplate(value.templates.orderConfirmation, 'orderConfirmation');
+                    }
+                    if (value.templates.shipping) {
+                        validateTemplate(value.templates.shipping, 'shipping');
+                    }
+                    if (value.templates.delivery) {
+                        validateTemplate(value.templates.delivery, 'delivery');
+                    }
                 }
                 break;
             case SettingKey.NOTIFICATIONS:
-                // Add notification validation
+                if (value.enableOrderNotifications !== undefined && 
+                    typeof value.enableOrderNotifications !== 'boolean') {
+                    throw new AppError("enableOrderNotifications must be a boolean", 400);
+                }
+                if (value.enableStockAlerts !== undefined && 
+                    typeof value.enableStockAlerts !== 'boolean') {
+                    throw new AppError("enableStockAlerts must be a boolean", 400);
+                }
+                if (value.stockThreshold !== undefined) {
+                    if (typeof value.stockThreshold !== 'number') {
+                        throw new AppError("stockThreshold must be a number", 400);
+                    }
+                    if (value.stockThreshold < 0) {
+                        throw new AppError("stockThreshold must be a non-negative number", 400);
+                    }
+                }
                 break;
             default:
                 throw new AppError(`Unknown setting key: ${key}`, 400);
@@ -199,6 +285,7 @@ export const settingsServices = {
                     textColor: "#1f2937",
                     headingsFont: "Montserrat, sans-serif",
                     bodyFont: "Inter, sans-serif",
+                    styledHeader: 'Sacramento, sans-serif',
                     siteBanner: "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
                 } as AppearanceSettings;
             case SettingKey.SEO:
@@ -220,25 +307,14 @@ export const settingsServices = {
                         tiktok: ""
                     }
                 } as ContactInfoSettings;
-            case SettingKey.SHIPPING:
-                return {
-                    enableFreeShipping: false,
-                    freeShippingThreshold: 100,
-                    defaultShippingFee: 10,
-                    shippingRegions: []
-                } as ShippingSettings;
-            case SettingKey.PAYMENT:
-                return {
-                    enableMobileMoney: true,
-                    enableCreditCard: false,
-                    mobileMoneyProviders: ["MTN", "Vodafone"],
-                    paymentInstructions: "Please complete your payment within 24 hours."
-                } as PaymentSettings;
             case SettingKey.EMAILS:
                 return {
-                    senderName: "Livssentials",
-                    senderEmail: "noreply@livssentials.com",
+                    senderName: "Livssentials.Co",
                     templates: {
+                        restock: {
+                            subject: "We have restocked!",
+                            body: "We are pleased to inform you that we have restocked."
+                        },
                         orderConfirmation: {
                             subject: "Your order has been confirmed",
                             body: "Thank you for your order. We will process it shortly."
@@ -252,13 +328,12 @@ export const settingsServices = {
                             body: "Your order has been delivered. We hope you enjoy your purchase."
                         }
                     }
-                } as EmailSettings;
+                } as MessageSettings;
             case SettingKey.NOTIFICATIONS:
                 return {
                     enableOrderNotifications: true,
                     enableStockAlerts: true,
                     stockThreshold: 5,
-                    adminEmails: []
                 } as NotificationSettings;
             default:
                 return {};
