@@ -217,7 +217,6 @@ const AddressesTab = () => {
                   value={formData.postalCode}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
-                  required
                 />
               </div>
             </div>
