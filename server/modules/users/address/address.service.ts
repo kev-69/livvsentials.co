@@ -3,24 +3,34 @@ import { AppError } from "../../../utils/errors";
 
 export const addressService = {
   getAddress: async (userId: string) => {
-    const address = await prisma.userAddress.findFirst({
+    const addresses = await prisma.userAddress.findMany({
       where: { userId: userId },
     });
 
-    if (!address) {
-      throw new AppError("Address not found", 404);
+    if (!addresses || addresses.length === 0) {
+      return []; // Return empty array instead of throwing error
     }
 
-    return address;
+    return addresses;
   },
 
   createAddress: async (userId: string, addressData: any) => {
-    const existingAddress = await prisma.userAddress.findFirst({
+    // Check if this is the first address for the user
+    const existingAddresses = await prisma.userAddress.findMany({
       where: { userId: userId },
     });
-
-    if (existingAddress) {
-      throw new AppError("Address already exists for this user", 400);
+    
+    // If isDefault is set to true, set all other addresses to false
+    if (addressData.isDefault) {
+      await prisma.userAddress.updateMany({
+        where: { userId: userId },
+        data: { isDefault: false },
+      });
+    }
+    
+    // If this is the first address, make it default regardless
+    if (existingAddresses.length === 0) {
+      addressData.isDefault = true;
     }
 
     const address = await prisma.userAddress.create({
@@ -33,24 +43,71 @@ export const addressService = {
     return address;
   },
 
-    deleteAddress: async (userId: string, addressId: string) => {
-        const address = await prisma.userAddress.findUnique({
-            where: { id: addressId },
+  updateAddress: async (userId: string, addressId: string, addressData: any) => {
+    const address = await prisma.userAddress.findUnique({
+      where: { id: addressId },
+    });
+
+    if (!address) {
+      throw new AppError("Address not found", 404);
+    }
+
+    // Verify that this address belongs to the user making the request
+    if (address.userId !== userId) {
+      throw new AppError("Unauthorized access to this address", 403);
+    }
+
+    // If setting this address as default, update all other addresses
+    if (addressData.isDefault) {
+      await prisma.userAddress.updateMany({
+        where: { 
+          userId: userId,
+          id: { not: addressId }
+        },
+        data: { isDefault: false },
+      });
+    }
+
+    const updatedAddress = await prisma.userAddress.update({
+      where: { id: addressId },
+      data: addressData,
+    });
+
+    return updatedAddress;
+  },
+
+  deleteAddress: async (userId: string, addressId: string) => {
+    const address = await prisma.userAddress.findUnique({
+      where: { id: addressId },
+    });
+
+    if (!address) {
+      throw new AppError("Address not found", 404);
+    }
+
+    // Verify that this address belongs to the user making the request
+    if (address.userId !== userId) {
+      throw new AppError("Unauthorized access to this address", 403);
+    }
+
+    await prisma.userAddress.delete({
+      where: { id: addressId },
+    });
+
+    // If the deleted address was the default, set another address as default if available
+    if (address.isDefault) {
+      const remainingAddress = await prisma.userAddress.findFirst({
+        where: { userId: userId }
+      });
+      
+      if (remainingAddress) {
+        await prisma.userAddress.update({
+          where: { id: remainingAddress.id },
+          data: { isDefault: true }
         });
+      }
+    }
 
-        if (!address) {
-            throw new AppError("Address not found", 404);
-        }
-
-        // Verify that this address belongs to the user making the request
-        if (address.userId !== userId) {
-            throw new AppError("Unauthorized access to this address", 403);
-        }
-
-        await prisma.userAddress.delete({
-            where: { id: addressId },
-        });
-
-        return { message: "Address deleted successfully" };
-    },
+    return { message: "Address deleted successfully" };
+  },
 }
