@@ -14,6 +14,11 @@ router.post('/',
     addressController.createAddress
 )
 
+router.put('/:id',
+    validateToken,
+    addressController.updateAddress
+)
+
 router.delete('/:id',
     validateToken,
     addressController.deleteAddress
