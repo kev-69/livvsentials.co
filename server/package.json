@@ -20,7 +20,8 @@
     "start": "ts-node app/api/src/main.ts",
     "start:dev": "ts-node-dev --respawn --transpile-only app/api/src/main.ts",
     "migrate": "npx prisma migrate dev",
-    "seed": "ts-node prisma/seed-data.ts"
+    "seed": "ts-node prisma/seed-data.ts",
+    "admin": "ts-node prisma/createAdmin.ts"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
