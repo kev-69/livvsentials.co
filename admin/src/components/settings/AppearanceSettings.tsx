@@ -15,11 +15,9 @@ interface AppearanceSettingsProps {
     secondaryColor: string;
     accentColor: string;
     textColor: string;
-    fonts: {
-      body: string;
-      heading: string;
-      styledHeader: string;
-    }
+    styledHeader: string;
+    bodyFont: string;
+    headingsFont: string;
   };
   onChange: (key: string, value: any) => void;
 }
@@ -101,18 +99,21 @@ const AppearanceSettings = ({ settings, onChange }: AppearanceSettingsProps) => 
     }
   };
 
-  const handleFontChange = (type: 'body' | 'heading' | 'styledHeader', value: string) => {
-    onChange('fonts', {
-      ...settings.fonts,
-      [type]: value
-    });
+  const handleFontChange = (type: 'body' | 'heading' | 'styled', value: string) => {
+    if (type === 'body') {
+      onChange('bodyFont', value);
+    } else if (type === 'heading') {
+      onChange('headingsFont', value);
+    } else if (type === 'styled') {
+      onChange('styledHeader', value);
+    }
   };
 
   useEffect(() => {
     // Get selected fonts or defaults
-    const headingFont = settings.fonts?.heading || 'Inter';
-    const bodyFont = settings.fonts?.body || 'Roboto';
-    const styledHeader = settings.fonts?.styledHeader || 'Sacramento'
+    const headingFont = settings.headingsFont || 'Inter';
+    const bodyFont = settings.bodyFont || 'Roboto';
+    const styledHeader = settings.styledHeader || 'Sacramento'
     
     // Create link elements for Google Fonts
     const link = document.createElement('link');
@@ -124,7 +125,7 @@ const AppearanceSettings = ({ settings, onChange }: AppearanceSettingsProps) => 
       // Clean up
       document.head.removeChild(link);
     };
-  }, [settings.fonts?.heading, settings.fonts?.body]);
+  }, [settings.headingsFont, settings.bodyFont, settings.styledHeader]);
 
   return (
     <div className="space-y-6">
@@ -212,7 +213,7 @@ const AppearanceSettings = ({ settings, onChange }: AppearanceSettingsProps) => 
           <div className="space-y-2">
             <Label htmlFor="heading-font">Heading Font</Label>
             <Select 
-              value={settings.fonts?.heading} 
+              value={settings.headingsFont} 
               onValueChange={(value) => handleFontChange('heading', value)}
             >
               <SelectTrigger id="heading-font">
@@ -234,7 +235,7 @@ const AppearanceSettings = ({ settings, onChange }: AppearanceSettingsProps) => 
           <div className="space-y-2">
             <Label htmlFor="body-font">Body Font</Label>
             <Select 
-              value={settings.fonts?.body || 'Roboto'} 
+              value={settings.bodyFont || 'Roboto'} 
               onValueChange={(value) => handleFontChange('body', value)}
             >
               <SelectTrigger id="body-font">
@@ -256,8 +257,8 @@ const AppearanceSettings = ({ settings, onChange }: AppearanceSettingsProps) => 
           <div className="space-y-2">
             <Label htmlFor="styled-header">Styled Heading</Label>
             <Select 
-              value={settings.fonts?.styledHeader || 'Sacramento'} 
-              onValueChange={(value) => handleFontChange('styledHeader', value)}
+              value={settings.styledHeader || 'Sacramento'} 
+              onValueChange={(value) => handleFontChange('styled', value)}
             >
               <SelectTrigger id="styled-header">
                 <SelectValue placeholder="Select styled header font" />
@@ -375,7 +376,7 @@ const AppearanceSettings = ({ settings, onChange }: AppearanceSettingsProps) => 
                   className="font-bold text-lg sm:text-xl" 
                   style={{ 
                     color: colors.textColor, 
-                    fontFamily: settings.fonts?.heading || 'Inter'
+                    fontFamily: settings.headingsFont || 'Inter'
                   }}
                 >
                   SAMPLE HEADING
@@ -383,7 +384,7 @@ const AppearanceSettings = ({ settings, onChange }: AppearanceSettingsProps) => 
                 <p 
                   className="text-xs sm:text-sm mb-3"
                   style={{ 
-                    fontFamily: settings.fonts?.body || 'Roboto'
+                    fontFamily: settings.bodyFont || 'Roboto'
                   }}
                 >
                   This is how your text will appear on light backgrounds.
@@ -394,42 +395,6 @@ const AppearanceSettings = ({ settings, onChange }: AppearanceSettingsProps) => 
                     Primary
                   </Button>
                   <Button size="sm" variant="outline" className="text-xs" style={{ color: colors.primaryColor, borderColor: colors.primaryColor }}>
-                    Outline
-                  </Button>
-                </div>
-                
-                <div className="h-2 rounded-full mb-2" style={{ backgroundColor: colors.primaryColor }}></div>
-                <div className="h-2 rounded-full mb-2" style={{ backgroundColor: colors.secondaryColor }}></div>
-                <div className="h-2 rounded-full" style={{ backgroundColor: colors.accentColor }}></div>
-              </div>
-            </div>
-            
-            {/* Dark mode preview */}
-            <div className="p-3 sm:p-4 rounded-md shadow-sm overflow-hidden" style={{ backgroundColor: colors.darkBg }}>
-              <h4 className="text-sm font-medium mb-3" style={{ color: colors.darkText }}>Dark Mode</h4>
-              
-              <div style={{ color: colors.darkText }}>
-                <h5 
-                  className="font-bold text-lg sm:text-xl" 
-                  style={{ 
-                    color: colors.darkText, 
-                    fontFamily: settings.fonts?.heading || 'Inter'
-                  }}
-                >
-                  SAMPLE HEADING
-                </h5>
-                <p 
-                  className="text-xs sm:text-sm mb-3"
-                  style={{ fontFamily: settings.fonts?.body || 'Roboto' }}
-                >
-                  This is how your text will appear on dark backgrounds.
-                </p>
-                
-                <div className="flex flex-wrap gap-2 mb-3">
-                  <Button size="sm" className="text-white text-xs" style={{ backgroundColor: colors.primaryColor, borderColor: colors.primaryColor }}>
-                    Primary
-                  </Button>
-                  <Button size="sm" variant="outline" className="text-xs" style={{ color: colors.primaryColor, borderColor: colors.primaryColor, backgroundColor: 'transparent' }}>
                     Outline
                   </Button>
                 </div>
