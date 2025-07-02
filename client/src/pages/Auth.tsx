@@ -1,6 +1,7 @@
 import { useState, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { toast, Toaster } from 'sonner';
 
 const Auth = () => {
   const [activeTab, setActiveTab] = useState('login');
@@ -62,7 +63,9 @@ const Auth = () => {
         });
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Something went wrong');
+      toast.error('An error occurred. Please try again.', {
+        icon: '🚨',
+      });
     } finally {
       setLoading(false);
     }
@@ -70,6 +73,7 @@ const Auth = () => {
   
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <Toaster position="top-center" richColors />
       <div className="w-full max-w-md">
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           {/* Tabs */}
