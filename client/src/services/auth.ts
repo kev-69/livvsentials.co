@@ -1,26 +1,5 @@
 import { get, post } from '../lib/api';
-
-interface RegisterData {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  phone: string;
-}
-
-interface LoginResponse {
-  token: string;
-  user: {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    role: string;
-    phone: string;
-    createdAt: string;
-    updatedAt: string;
-  };
-}
+import type { RegisterData, LoginResponse } from '../types/user';
 
 export const authService = {
   register: async (userData: RegisterData) => {
