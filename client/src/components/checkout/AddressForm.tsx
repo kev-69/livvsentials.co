@@ -10,6 +10,7 @@ interface AddressFormProps {
 const AddressForm = ({ initialAddress, onSubmit, onCancel }: AddressFormProps) => {
   const [address, setAddress] = useState<Address>(
     initialAddress || {
+      id: '',
       fullName: '',
       phone: '',
       streetName: '',
