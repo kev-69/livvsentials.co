@@ -14,7 +14,7 @@
   --color-text: #1f2937;
   
   --font-headings: 'Montserrat', sans-serif;
-  --styled-header: 'Parisienne', cursive;
+  --font-styled: 'Parisienne';
   --font-body: 'Inter', sans-serif;
 }
 
@@ -24,12 +24,13 @@ body {
   color: var(--color-text);
 }
 
-h1, h3, h4, h5, h6 {
+h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-headings);
 }
 
-h2 {
-  font-family: var(--styled-header);
+.custom {
+  font-family: var(--font-styled);
+  line-height: 1.2;
 }
 
 /* Define utility classes that use our theme variables */
