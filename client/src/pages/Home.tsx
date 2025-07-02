@@ -38,7 +38,7 @@ const Home = () => {
             <h1 className="text-2xl font-bold leading-tight mb-4">
               PACK OF THREE BASIC
             </h1>
-            <h2 className='text-3xl font-thin'>Tshirts</h2>
+            <span className='text-5xl custom'>Tshirts <br /></span>
             <a href="#" className="underline text-sm font-medium">
               SHOP NOW
             </a>
@@ -64,7 +64,7 @@ const Home = () => {
             <div className="relative bg-white rounded-xl p-6 flex items-center justify-between shadow">
               <div>
                 <h1 className="text-2xl font-semibold">PACK OF THREE</h1>
-                <h2 className='text-3xl'>Polo</h2>
+                <span className='text-5xl custom'>Polo <br /></span>
                 <a href="#" className="underline text-sm font-medium">
                   SHOP NOW
                 </a>
@@ -82,7 +82,7 @@ const Home = () => {
               <h1 className="text-2xl font-semibold leading-snug">
                 DURABLE AND SPACIOUS
               </h1>
-              <h2 className='text-3xl'>Backpacks</h2>
+              <span className='text-5xl custom'>Backpacks <br /></span>
               <a href="#" className="underline text-sm font-medium">
                 SHOP NOW
               </a>
