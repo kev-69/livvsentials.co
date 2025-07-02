@@ -13,6 +13,7 @@ const defaultTheme: ThemeContextType = {
   fonts: {
     headings: 'Montserrat, sans-serif',
     body: 'Inter, sans-serif',
+    styled: 'Sacramento, cursive',
   },
   images: {
     banner: 'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80',
@@ -57,8 +58,9 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
             text: response.data.settingValue.textColor || defaultTheme.colors.text,
           },
           fonts: {
-            headings: response.data.settingValue.fonts.heading || defaultTheme.fonts.headings,
-            body: response.data.settingValue.fonts.body || defaultTheme.fonts.body,
+            headings: response.data.settingValue.headingsFont,
+            body: response.data.settingValue.bodyFont,
+            styled: response.data.settingValue.styledHeader,
           },
           images: {
             banner: response.data.settingValue.siteBanner || defaultTheme.images.banner,
@@ -103,14 +105,16 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
     root.style.setProperty('--color-text', themeData.colors?.text || defaultTheme.colors.text);
     
     // Apply fonts
-    root.style.setProperty('--font-headings', themeData.fonts?.headings || defaultTheme.fonts.headings);
-    root.style.setProperty('--font-body', themeData.fonts?.body || defaultTheme.fonts.body);
+    root.style.setProperty('--font-headings', themeData.fonts?.headings);
+    root.style.setProperty('--font-body', themeData.fonts?.body);
+    root.style.setProperty('--font-styled', themeData.fonts?.styled);
     
     // Dynamically load Google Fonts if needed
     const headingFont = themeData.fonts?.headings?.split(',')[0].trim() || 'Montserrat';
     const bodyFont = themeData.fonts?.body?.split(',')[0].trim() || 'Inter';
-    
-    if (headingFont !== 'system-ui' && bodyFont !== 'system-ui') {
+    const styledHeaders = themeData.fonts?.styled?.split(',')[0].trim() || 'Sacramento';
+
+    if (headingFont !== 'system-ui' && bodyFont !== 'system-ui' && styledHeaders !== 'system-ui') {
       // Remove any existing font link to avoid duplicates
       const existingLink = document.getElementById('google-fonts');
       if (existingLink) {
@@ -120,7 +124,7 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
       const link = document.createElement('link');
       link.id = 'google-fonts';
       link.rel = 'stylesheet';
-      link.href = `https://fonts.googleapis.com/css2?family=${headingFont.replace(' ', '+')}&family=${bodyFont.replace(' ', '+')}&display=swap`;
+      link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(headingFont)}:wght@400;700&family=${encodeURIComponent(bodyFont)}:wght@400;500&family=${encodeURIComponent(styledHeaders)}:wght@400&display=swap`;
       document.head.appendChild(link);
     }
   };
