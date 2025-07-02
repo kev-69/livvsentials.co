@@ -74,7 +74,7 @@ const Footer = () => {
             tiktok: data.settingValue.socialMedia?.tiktok || defaultContactInfo.socialMedia.tiktok
           }
         };
-        console.log('New info', updatedInfo);
+        // console.log('New info', updatedInfo);
         
         // console.log('Response', response);
         
