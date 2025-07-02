@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import bcrytp from 'bcrypt';
 import { prisma } from '../../../shared/prisma';
-// import email services here
+// import message services here
 
 export const authService = {
     register: async (email: string, password: string, firstName: string, lastName: string, phone: string) => {
@@ -32,7 +32,7 @@ export const authService = {
             },
         });
 
-        // send welcome email
+        // send welcome message
 
         return user;
     },
@@ -57,8 +57,8 @@ export const authService = {
         }
 
         const payload = {
-            id: user.id,
-            // role: user.role,
+            userId: user.id,
+            role: user.role,
             // isVerified: user.isVerified,
         };
 
@@ -66,23 +66,73 @@ export const authService = {
         const token = jwt.sign( 
             payload,
             process.env.JWT_SECRET as string, {
-            expiresIn: '1d',
+            expiresIn: '12h',
         });
 
         return { token, user };
     },
 
-    // reset password
+    getProfile: async (userId: string) => {
+        // get user profile
+        const user = await prisma.user.findUnique({
+            where: {
+                id: userId,
+            },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                role: true,
+                phone: true,
+                createdAt: true,
+                updatedAt: true,
+            },
+        });
 
-    // verify code for reset password
+        if (!user) {
+            throw new Error('User not found');
+        }
 
-    // set new password
-    setNewPassword: async (userId: string, password: string) => {
-        // hash password
-        const hashedPassword = await bcrytp.hash(password, 10);
+        return user;
+    },
+
+    updateProfile: async (userId: string, data: Partial<{ firstName: string; lastName: string; phone: string }>) => {
+        // update user profile
+        const user = await prisma.user.update({
+            where: {
+                id: userId,
+            },
+            data,
+        });
+
+        return user;
+    },
+
+    changePassword: async (userId: string, currentPassword: string, newPassword: string) => {
+        // check if user exists
+        const user = await prisma.user.findUnique({
+            where: {
+                id: userId,
+            },
+        });
+
+        if (!user) {
+            throw new Error('User not found');
+        }
+
+        // check if current password is correct
+        const isPasswordValid = await bcrytp.compare(currentPassword, user.password);
+
+        if (!isPasswordValid) {
+            throw new Error('Current password is incorrect');
+        }
+
+        // hash new password
+        const hashedPassword = await bcrytp.hash(newPassword, 10);
 
         // update user password
-        const user = await prisma.user.update({
+        const updatedUser = await prisma.user.update({
             where: {
                 id: userId,
             },
@@ -91,8 +141,30 @@ export const authService = {
             },
         });
 
-        return user;
+        return updatedUser;
     },
 
-    // resent reset password code
+    // request password reset
+
+    // verify code for reset password
+
+    // set new password
+    // setNewPassword: async (userId: string, password: string) => {
+    //     // hash password
+    //     const hashedPassword = await bcrytp.hash(password, 10);
+
+    //     // update user password
+    //     const user = await prisma.user.update({
+    //         where: {
+    //             id: userId,
+    //         },
+    //         data: {
+    //             password: hashedPassword,
+    //         },
+    //     });
+
+    //     return user;
+    // },
+
+    // resend reset password code
 }
