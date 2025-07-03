@@ -1,6 +1,8 @@
 import { prisma } from "../../../shared/prisma";
 import { AppError } from "../../../utils/errors";
 import logger from "../../../utils/logger";
+import { uploadGalleryImage, deleteImage, getPublicIdFromUrl } from "../../../configs/cloudinary.config";
+import fs from 'fs';
 
 // Define setting keys and their structure for type safety
 export enum SettingKey {
@@ -69,6 +71,19 @@ interface NotificationSettings {
     enableOrderNotifications: boolean;
     enableStockAlerts: boolean;
     stockThreshold: number;
+}
+
+export interface GalleryImage {
+    id: number;
+    url: string;
+    alt: string;
+    tags: string[];
+    height: 'tall' | 'medium' | 'short';
+}
+
+export interface GallerySettings {
+    images: GalleryImage[];
+    tags: string[]; // List of all available tags for filtering
 }
 
 export const settingsServices = {
@@ -270,6 +285,15 @@ export const settingsServices = {
                     }
                 }
                 break;
+            case SettingKey.GALLERY:
+                // Basic validation for gallery settings
+                if (value.images && !Array.isArray(value.images)) {
+                    throw new AppError("images must be an array", 400);
+                }
+                if (value.tags && !Array.isArray(value.tags)) {
+                    throw new AppError("tags must be an array", 400);
+                }
+                break;
             default:
                 throw new AppError(`Unknown setting key: ${key}`, 400);
         }
@@ -335,6 +359,11 @@ export const settingsServices = {
                     enableStockAlerts: true,
                     stockThreshold: 5,
                 } as NotificationSettings;
+            case SettingKey.GALLERY:
+                return {
+                    images: [],
+                    tags: []
+                } as GallerySettings;
             default:
                 return {};
         }
