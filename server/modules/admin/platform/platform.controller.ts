@@ -65,5 +65,5 @@ export const settingsController = {
                 res.status(500).json(errorResponse('Internal server error'));
             }
         }
-    }
+    },
 };
