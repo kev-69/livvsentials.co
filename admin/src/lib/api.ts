@@ -426,6 +426,36 @@ export const updatePlatformSetting = async (key: string, value: any) => {
   }
 };
 
+export const addImageToGallery = async (imageData: FormData ) => {
+  try {
+    const response = await api.post('/admin/settings/gallery/image', imageData)
+    return response.data.data
+  } catch (error) {
+    console.error('Error adding image to gallery:', error);
+    throw error;
+  }
+}
+
+export const updateGalleryImage = async (id: number, imageData: FormData) => {
+  try {
+    const response = await api.patch(`/admin/settings/gallery/image/${id}`, imageData)
+    return response.data.data
+  } catch (error) {
+    console.error('Error updating gallery image:', error);
+    throw error;
+  }
+}
+
+export const deleteGalleryImage = async (id: number) => {
+  try {
+      const response = await api.delete(`/admin/settings/gallery/image/${id}`)
+      return response.data.data
+  } catch (error) {
+    console.error('Error deleting image from gallery:', error);
+    throw error;
+  }
+}
+
 export const fetchReviews = async () => {
   try {
     const response = await api.get('/admin/reviews');
