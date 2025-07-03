@@ -20,6 +20,7 @@ import ContactSettings from '@/components/settings/ContactSettings';
 import SEOSettings from '@/components/settings/SEOSettings';
 import EmailSettings from '@/components/settings/EmailSettings';
 import NotificationSettings from '@/components/settings/NotificationSettings';
+import GallerySettings from '@/components/settings/GallerySettings';
 
 // Object to match backend
 const SettingKey = {
@@ -29,7 +30,8 @@ const SettingKey = {
   SHIPPING: "shipping",
   PAYMENT: "payment",
   EMAILS: "emails",
-  NOTIFICATIONS: "notifications"
+  NOTIFICATIONS: "notifications",
+  GALLERY: "gallery"
 } as const;
 
 type SettingKey = typeof SettingKey[keyof typeof SettingKey];
@@ -204,10 +206,14 @@ const PlatformSettingsTab = () => {
         className="space-y-4"
       >
         <div className="bg-background sticky top-0 z-10 pb-4">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-5 h-auto">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-6 h-auto">
             <TabsTrigger value={SettingKey.APPEARANCE} className="data-[state=active]:bg-primary/10">
               <Image className="h-4 w-4 mr-2" />
               Appearance
+            </TabsTrigger>
+            <TabsTrigger value={SettingKey.GALLERY} className="data-[state=active]:bg-primary/10">
+              <Image className="h-4 w-4 mr-2" />
+              Gallery
             </TabsTrigger>
             <TabsTrigger value={SettingKey.SEO} className="data-[state=active]:bg-primary/10">
               <Globe className="h-4 w-4 mr-2" />
@@ -252,6 +258,47 @@ const PlatformSettingsTab = () => {
               <AppearanceSettings 
                 settings={settings[SettingKey.APPEARANCE] || {}} 
                 onChange={(key, value) => handleSettingChange(SettingKey.APPEARANCE, key, value)} 
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Gallery  Tab */}
+        <TabsContent value={SettingKey.GALLERY}>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Gallery Settings</CardTitle>
+                <CardDescription>
+                  Manage your gallery images and display settings
+                </CardDescription>
+              </div>
+              
+              <Button
+                size="sm"
+                onClick={() => handleSaveSection(SettingKey.GALLERY)}
+                disabled={isSaving || savingSection === SettingKey.GALLERY}
+              >
+                {savingSection === SettingKey.GALLERY ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
+            </CardHeader>
+            
+            <CardContent>
+              <GallerySettings 
+                settings={settings[SettingKey.GALLERY] || { images: [], tags: [] }}
+                onChange={(key, value) => handleSettingChange(SettingKey.GALLERY, key, value)}
+                onSave={() => handleSaveSection(SettingKey.GALLERY)}
+                isSaving={savingSection === SettingKey.GALLERY}
               />
             </CardContent>
           </Card>
