@@ -54,10 +54,13 @@ enum UserRole {
 
 model UserAddress {
     id              String  @id @default(uuid())
+    fullName        String
     streetName      String
     city            String
     postalCode      String
     region          String
+    phone           String
+    isDefault       Boolean @default(false)
     userId          String
     user            User    @relation(fields: [userId], references: [id])
     createdAt       DateTime    @default(now())
@@ -298,8 +301,9 @@ enum SenderType {
 // ======== SHOPPING-RELATED MODELS ========
 model Cart {
     id          String  @id  @default(uuid())
-    userId      String
-    user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId      String?
+    sessionId   String? @unique
+    user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
     cartItems   CartItem[]
     createdAt   DateTime    @default(now())
     updatedAt   DateTime    @updatedAt
