@@ -11,6 +11,7 @@ import { orderRoutes } from "../../../../modules/admin/orders/order.module";
 import { helpRoutes } from "../../../../modules/admin/help/help.module";
 import { platformSettingsRoutes } from "../../../../modules/admin/platform/platform.module";
 import { reviewsRoutes } from "../../../../modules/admin/reviews/reviews.module";
+import { galleryRoutes } from "../../../../modules/admin/platform/gallery,module";
 
 const router = Router();
 
@@ -59,6 +60,12 @@ router.use("/settings",
     isAdmin,
     platformSettingsRoutes
 );
+
+router.use('/gallery',
+    validateToken,
+    isAdmin,
+    galleryRoutes
+)
 
 router.use('/',
     validateToken,
