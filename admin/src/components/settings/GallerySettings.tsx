@@ -1,16 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 import {
   Card, 
   CardContent, 
@@ -29,8 +19,10 @@ import {
   AlertDialogTitle 
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { X, Plus, Upload, Edit, Trash, Image as ImageIcon } from 'lucide-react';
+import { X, Plus, Upload, Edit, Trash } from 'lucide-react';
 import { gallery } from '@/lib/api';
+import { AddGalleryItemDialog } from '../modals/AddGalleryItemDialog';
+import { EditGalleryItemDialog } from '../modals/EditGalleryItemDialog';
 
 interface GalleryImage {
   id: number;
@@ -52,29 +44,18 @@ interface GallerySettingsProps {
   isSaving: boolean;
 }
 
-const heightOptions = [
-  { value: 'tall', label: 'Tall' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'short', label: 'Short' }
-];
-
 const GallerySettings = ({ settings, onChange, onSave, isSaving }: GallerySettingsProps) => {
   const [newTag, setNewTag] = useState('');
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const [isAddingTag, setIsAddingTag] = useState(false);
   const [tagToDelete, setTagToDelete] = useState<string | null>(null);
   const [tagToEdit, setTagToEdit] = useState<{oldTag: string, newTag: string} | null>(null);
-  const [editImageId, setEditImageId] = useState<number | null>(null);
-  const [editImageData, setEditImageData] = useState<Partial<GalleryImage>>({});
   const [deleteImageId, setDeleteImageId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Dialog states
   const [showAddItemModal, setShowAddItemModal] = useState(false);
-  const [newItemData, setNewItemData] = useState({
-    image: null as File | null,
-    alt: '',
-    tags: [] as string[],
-    height: 'medium' as 'tall' | 'medium' | 'short'
-  });
+  const [editImageData, setEditImageData] = useState<GalleryImage | null>(null);
   
   // Initialize settings with default values to prevent undefined errors
   const gallerySettings = {
@@ -227,88 +208,22 @@ const GallerySettings = ({ settings, onChange, onSave, isSaving }: GallerySettin
     }
   };
   
-  // Handle editing an image
+  // Start editing an image
   const startEditing = (image: GalleryImage) => {
-    setEditImageId(image.id);
-    setEditImageData({
-      alt: image.alt,
-      tags: [...image.tags],
-      height: image.height
-    });
+    setEditImageData(image);
   };
   
-  // Handle tag selection for an image
-  const toggleImageTag = (tag: string) => {
-    if (!editImageData.tags) return;
-    
-    const updatedTags = editImageData.tags.includes(tag)
-      ? editImageData.tags.filter(t => t !== tag)
-      : [...editImageData.tags, tag];
-    
-    setEditImageData({ ...editImageData, tags: updatedTags });
+  // Handle adding a new gallery item
+  const handleItemAdded = (newItem: GalleryImage) => {
+    onChange('images', [...gallerySettings.images, newItem]);
   };
   
-  // Toggle tag selection for new item
-  const toggleNewItemTag = (tag: string) => {
-    const updatedTags = newItemData.tags.includes(tag)
-      ? newItemData.tags.filter(t => t !== tag)
-      : [...newItemData.tags, tag];
-    
-    setNewItemData({ ...newItemData, tags: updatedTags });
-  };
-  
-  // Handle file input change
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setNewItemData({ ...newItemData, image: e.target.files[0] });
-    }
-  };
-  
-  // Add new gallery item
-  const addGalleryItem = async () => {
-    if (!newItemData.image) {
-      toast.error('Please select an image');
-      return;
-    }
-    
-    if (!newItemData.alt.trim()) {
-      toast.error('Please provide alt text');
-      return;
-    }
-    
-    if (newItemData.tags.length === 0) {
-      toast.error('Please select at least one tag');
-      return;
-    }
-    
-    setIsLoading(true);
-    try {
-      const formData = new FormData();
-      formData.append('image', newItemData.image);
-      formData.append('alt', newItemData.alt);
-      formData.append('tags', JSON.stringify(newItemData.tags));
-      formData.append('height', newItemData.height);
-      
-      const newItem = await gallery.addToGallery(formData);
-      
-      // Update state with new item
-      onChange('images', [...gallerySettings.images, newItem]);
-      
-      setShowAddItemModal(false);
-      setNewItemData({
-        image: null,
-        alt: '',
-        tags: [],
-        height: 'medium'
-      });
-      
-      toast.success('Gallery item added successfully');
-    } catch (error) {
-      console.error('Error adding gallery item:', error);
-      toast.error('Failed to add gallery item');
-    } finally {
-      setIsLoading(false);
-    }
+  // Handle updating a gallery item
+  const handleItemUpdated = (updatedItem: GalleryImage) => {
+    const updatedImages = gallerySettings.images.map(img => 
+      img.id === updatedItem.id ? updatedItem : img
+    );
+    onChange('images', updatedImages);
   };
   
   // Delete gallery item
@@ -598,125 +513,22 @@ const GallerySettings = ({ settings, onChange, onSave, isSaving }: GallerySettin
         </AlertDialogContent>
       </AlertDialog>
       
-      {/* Add Gallery Item Modal */}
-      <AlertDialog open={showAddItemModal} onOpenChange={setShowAddItemModal}>
-        <AlertDialogContent className="sm:max-w-md">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Add to Gallery</AlertDialogTitle>
-            <AlertDialogDescription>
-              Upload an image and provide details for your gallery item.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          
-          <div className="space-y-4 py-4">
-            {/* Image Upload */}
-            <div className="grid w-full items-center gap-1.5">
-              <Label htmlFor="gallery-image">Image</Label>
-              <div className="flex items-center gap-2">
-                {newItemData.image ? (
-                  <div className="relative w-24 h-24 rounded-md overflow-hidden border border-border">
-                    <img 
-                      src={URL.createObjectURL(newItemData.image)} 
-                      alt="Preview" 
-                      className="w-full h-full object-cover"
-                    />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute top-0 right-0 h-6 w-6 bg-black/60 text-white hover:bg-black/80"
-                      onClick={() => setNewItemData({ ...newItemData, image: null })}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center w-24 h-24 rounded-md border border-dashed border-border">
-                    <ImageIcon className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                )}
-                <div className="flex-1">
-                  <Input
-                    id="gallery-image"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="cursor-pointer"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Recommended size: 1200x800px, max 5MB
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            {/* Alt Text */}
-            <div className="grid w-full items-center gap-1.5">
-              <Label htmlFor="alt-text">Alt Text</Label>
-              <Textarea
-                id="alt-text"
-                placeholder="Describe this image for accessibility..."
-                value={newItemData.alt}
-                onChange={(e: any) => setNewItemData({ ...newItemData, alt: e.target.value })}
-                className="resize-none"
-                rows={2}
-              />
-            </div>
-            
-            {/* Image Height */}
-            <div className="grid w-full items-center gap-1.5">
-              <Label htmlFor="image-height">Height</Label>
-              <Select 
-                value={newItemData.height} 
-                onValueChange={(value) => setNewItemData({ ...newItemData, height: value as 'tall' | 'medium' | 'short' })}
-              >
-                <SelectTrigger id="image-height">
-                  <SelectValue placeholder="Select height" />
-                </SelectTrigger>
-                <SelectContent>
-                  {heightOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {/* Tags */}
-            <div className="grid w-full items-center gap-1.5">
-              <Label>Tags</Label>
-              <div className="flex flex-wrap gap-2 p-2 border rounded-md">
-                {gallerySettings.tags.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No tags available. Create tags first.</p>
-                ) : (
-                  gallerySettings.tags.map(tag => (
-                    <div key={tag} className="flex items-center gap-1.5">
-                      <Checkbox 
-                        id={`tag-${tag}`}
-                        checked={newItemData.tags.includes(tag)}
-                        onCheckedChange={() => toggleNewItemTag(tag)}
-                      />
-                      <Label htmlFor={`tag-${tag}`} className="text-sm cursor-pointer">
-                        {tag}
-                      </Label>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-          
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={addGalleryItem}
-              disabled={isLoading || !newItemData.image || !newItemData.alt.trim() || newItemData.tags.length === 0}
-            >
-              {isLoading ? 'Adding...' : 'Add to Gallery'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Add Gallery Item Dialog */}
+      <AddGalleryItemDialog 
+        open={showAddItemModal}
+        onOpenChange={setShowAddItemModal}
+        tags={gallerySettings.tags}
+        onItemAdded={handleItemAdded}
+      />
+      
+      {/* Edit Gallery Item Dialog */}
+      <EditGalleryItemDialog
+        open={!!editImageData}
+        onOpenChange={(isOpen) => !isOpen && setEditImageData(null)}
+        tags={gallerySettings.tags}
+        imageToEdit={editImageData}
+        onItemUpdated={handleItemUpdated}
+      />
     </div>
   );
 };
