@@ -3,12 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, ZoomIn } from 'lucide-react';
 import type { GalleryImage } from '../types/platform';
 import { get } from '../lib/api';
+import { FullPageLoader } from '../components/ui/BrandedLoader';
 
 const Gallery = () => {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const [gallery, setGallery] = useState<GalleryImage[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchGalleryImages = async () => {
@@ -23,6 +25,10 @@ const Gallery = () => {
         } catch (error) {
           console.error('Failed to fetch gallery images:', error);
           setLoading(false);
+        } finally {
+          setTimeout(() => {
+            setIsLoading(false);
+          }, 10000);
         }
       };
 
@@ -66,6 +72,10 @@ const Gallery = () => {
         return 'row-span-3 md:row-span-1';
     }
   };
+
+  if (isLoading) {
+    return <FullPageLoader animation="wave" />;
+  }
 
   return (
     <div className="bg-white min-h-screen">
