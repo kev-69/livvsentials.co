@@ -146,7 +146,6 @@ export const galleryService = {
     },
     
     // ===== Gallery Item Management =====
-    
     // Get all gallery items
     async getAllGalleryItems() {
         try {

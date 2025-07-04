@@ -99,6 +99,10 @@ export const platformService = {
   getAppearanceSettings: async () => {
     return await get('/settings/appearance');
   },
+
+  getGalleryImages: async () => {
+    return await get('/settings/gallery');
+  },
   
   getSEOSettings: async () => {
     return await get('/settings/seo');

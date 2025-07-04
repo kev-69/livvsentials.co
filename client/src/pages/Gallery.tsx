@@ -1,144 +1,42 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ZoomIn, Instagram } from 'lucide-react';
+import { X, ZoomIn } from 'lucide-react';
 import type { GalleryImage } from '../types/platform';
-
-// Sample gallery images
-const sampleImages: GalleryImage[] = [
-  {
-    id: 1,
-    url: 'https://images.unsplash.com/photo-1612423284934-2850a4ea6b0f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-    alt: 'Fashion model in urban setting',
-    tags: ['fashion', 'urban'],
-    height: 'tall' // tall, medium, short for varied heights
-  },
-  {
-    id: 2,
-    url: 'https://images.unsplash.com/photo-1551232864-3f0890e580d9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-    alt: 'Close-up of leather handbag',
-    tags: ['accessories', 'detail'],
-    height: 'medium'
-  },
-  {
-    id: 3,
-    url: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-    alt: 'Woman with sunglasses',
-    tags: ['portrait', 'accessories'],
-    height: 'medium'
-  },
-  {
-    id: 4,
-    url: 'https://images.unsplash.com/photo-1539109136881-3be0616acf4b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-    alt: 'Stylish outfit flatlay',
-    tags: ['flatlay', 'style'],
-    height: 'short'
-  },
-  {
-    id: 5,
-    url: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-    alt: 'Fashion runway shot',
-    tags: ['runway', 'fashion'],
-    height: 'tall'
-  },
-  {
-    id: 6,
-    url: 'https://images.unsplash.com/photo-1485968579580-b6d095142e6e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-    alt: 'Woman in vintage dress',
-    tags: ['vintage', 'portrait'],
-    height: 'medium'
-  },
-  {
-    id: 7,
-    url: 'https://images.unsplash.com/photo-1574201635302-388dd92a4c3f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-    alt: 'Close-up of jewelry',
-    tags: ['jewelry', 'detail'],
-    height: 'short'
-  },
-  {
-    id: 8,
-    url: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-    alt: 'Elegant evening wear',
-    tags: ['evening', 'elegant'],
-    height: 'tall'
-  },
-  {
-    id: 9,
-    url: 'https://images.unsplash.com/photo-1566206091558-7f218b696731?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-    alt: 'Summer fashion look',
-    tags: ['summer', 'casual'],
-    height: 'medium'
-  },
-  {
-    id: 10,
-    url: 'https://images.unsplash.com/photo-1576828831022-ca0facf4d293?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-    alt: 'Winter accessories',
-    tags: ['winter', 'accessories'],
-    height: 'medium'
-  },
-  {
-    id: 11,
-    url: 'https://images.unsplash.com/photo-1537261131436-2151e41fc10e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-    alt: 'Makeup products',
-    tags: ['beauty', 'makeup'],
-    height: 'short'
-  },
-  {
-    id: 12,
-    url: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-    alt: 'Designer shoes',
-    tags: ['shoes', 'luxury'],
-    height: 'medium'
-  },
-  {
-    id: 13,
-    url: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-    alt: 'Street style fashion',
-    tags: ['street', 'urban'],
-    height: 'tall'
-  },
-  {
-    id: 14,
-    url: 'https://images.unsplash.com/photo-1582142306909-195724d0a735?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-    alt: 'Close-up of fabric detail',
-    tags: ['detail', 'texture'],
-    height: 'short'
-  },
-  {
-    id: 15,
-    url: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-    alt: 'Model in casual wear',
-    tags: ['casual', 'portrait'],
-    height: 'medium'
-  }
-];
+import { get } from '../lib/api';
 
 const Gallery = () => {
-  const [images, setImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
   const [activeFilter, setActiveFilter] = useState<string>('all');
-  
-  // Simulate fetching images from an API
+  const [gallery, setGallery] = useState<GalleryImage[]>([]);
+
   useEffect(() => {
-    const fetchImages = () => {
-      // Simulate loading delay
-      setTimeout(() => {
-        setImages(sampleImages);
-        setLoading(false);
-      }, 1000);
-    };
-    
-    fetchImages();
-  }, []);
+    const fetchGalleryImages = async () => {
+      setLoading(true);
+      try {
+        // Fetch from API
+          const response = await get('/settings/gallery');
+          const data = response.data.settingValue.images;
+
+          setGallery(data);
+          setLoading(false);
+        } catch (error) {
+          console.error('Failed to fetch gallery images:', error);
+          setLoading(false);
+        }
+      };
+
+      fetchGalleryImages();
+    }, []);
   
   // Get all unique tags for filter options
-  const allTags = ['all', ...Array.from(new Set(sampleImages.flatMap(img => img.tags)))];
-  
+  const allTags = ['all', ...Array.from(new Set(gallery.flatMap(img => img.tags)))];
+
   // Filter images based on selected tag
   const filteredImages = activeFilter === 'all' 
-    ? images 
-    : images.filter(img => img.tags.includes(activeFilter));
-  
+    ? gallery 
+    : gallery.filter(img => img.tags.includes(activeFilter));
+
   // Open image modal
   const openModal = (image: GalleryImage) => {
     setSelectedImage(image);
@@ -311,7 +209,7 @@ const Gallery = () => {
               </button>
               
               {/* Social Share */}
-              <div className="absolute top-4 left-4 z-10 flex space-x-2">
+              {/* <div className="absolute top-4 left-4 z-10 flex space-x-2">
                 <a 
                   href={`https://www.instagram.com/sharer/sharer.php?u=${selectedImage.url}`} 
                   target="_blank" 
@@ -320,7 +218,7 @@ const Gallery = () => {
                 >
                   <Instagram className="w-5 h-5" />
                 </a>
-              </div>
+              </div> */}
               
               {/* Image */}
               <img 
