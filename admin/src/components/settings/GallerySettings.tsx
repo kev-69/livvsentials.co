@@ -380,7 +380,7 @@ const GallerySettings = ({ settings, onChange, onSave, isSaving }: GallerySettin
             disabled={isLoading}
           >
             <Plus className="h-4 w-4 mr-2" />
-            Add to Gallery
+            Add
           </Button>
         </CardHeader>
         <CardContent>
