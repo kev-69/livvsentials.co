@@ -15,7 +15,6 @@ export const galleryService = {
     },
 
     // ===== Tag Management =====
-    
     // Get all tags
     async getAllTags() {
         try {
