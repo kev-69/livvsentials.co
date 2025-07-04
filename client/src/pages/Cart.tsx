@@ -5,6 +5,7 @@ import { ShoppingCart, Trash2, Plus, Minus, ArrowLeft, AlertCircle, Truck, Refre
 import { useCart } from '../hooks/useCart';
 import { useAuth } from '../hooks/useAuth';
 import { Toaster } from 'sonner';
+import { FullPageLoader } from '../components/ui/BrandedLoader';
 
 const Cart = () => {
   const { 
@@ -58,6 +59,10 @@ const Cart = () => {
     month: 'long',
     day: 'numeric'
   });
+
+  if (isLoading) {
+    return <FullPageLoader animation="wave" />;
+  }
 
   return (
     <div className="bg-gray-50 py-8 min-h-screen">
