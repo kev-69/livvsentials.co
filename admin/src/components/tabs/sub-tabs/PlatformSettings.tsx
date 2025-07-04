@@ -275,7 +275,6 @@ const PlatformSettingsTab = () => {
               </div>
               
               <Button
-                size="sm"
                 onClick={() => handleSaveSection(SettingKey.GALLERY)}
                 disabled={isSaving || savingSection === SettingKey.GALLERY}
               >
@@ -287,7 +286,7 @@ const PlatformSettingsTab = () => {
                 ) : (
                   <>
                     <Save className="mr-2 h-4 w-4" />
-                    Save Changes
+                    Save
                   </>
                 )}
               </Button>
