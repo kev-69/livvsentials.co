@@ -44,7 +44,7 @@ const ShippingStep = ({
                 onClick={() => onAddressSelect(address)}
                 className={`p-4 border rounded-md cursor-pointer ${
                   selectedAddress?.id === address.id 
-                    ? 'border-primary bg-primary bg-opacity-5' 
+                    ? 'border-primary bg-primary bg-opacity-5 text-white' 
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
@@ -58,11 +58,11 @@ const ShippingStep = ({
                   />
                   <div className="ml-3">
                     <p className="font-medium">{address.fullName}</p>
-                    <p className="text-sm text-gray-600 mt-1">{address.streetName}</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm mt-1">{address.streetName}</p>
+                    <p className="text-sm">
                       {address.city}, {address.region} {address.postalCode}
                     </p>
-                    <p className="text-sm text-gray-600 mt-1">{address.phone}</p>
+                    <p className="text-sm mt-1">{address.phone}</p>
                   </div>
                 </div>
               </div>
