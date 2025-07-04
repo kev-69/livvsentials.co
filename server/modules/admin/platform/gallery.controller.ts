@@ -121,15 +121,36 @@ export const galleryController = {
                 throw new AppError('Tags are required', 400);
             }
             
+            // Handle both single tag and multiple tags
             let parsedTags;
             try {
-                parsedTags = JSON.parse(tags);
+                // If tags is a JSON string, parse it
+                if (typeof tags === 'string' && (tags.startsWith('[') || tags.startsWith('"'))) {
+                    parsedTags = JSON.parse(tags);
+                    
+                    // If it's a single string (not in array format), convert to array
+                    if (typeof parsedTags === 'string') {
+                        parsedTags = [parsedTags];
+                    }
+                } else {
+                    // If it's not JSON, treat as a single tag
+                    parsedTags = [tags];
+                }
+                
+                // Ensure parsedTags is always an array
+                if (!Array.isArray(parsedTags)) {
+                    parsedTags = [parsedTags];
+                }
             } catch (err) {
-                throw new AppError('Tags must be a valid JSON array', 400);
+                // If JSON parsing fails, treat as a single tag
+                parsedTags = [tags];
             }
             
-            if (!height || !['tall', 'medium', 'short'].includes(height)) {
-                throw new AppError('Height must be "tall", "medium", or "short"', 400);
+            // Normalize height value and check
+            const normalizedHeight = height && typeof height === 'string' ? height.trim().toLowerCase() : height;
+            
+            if (!normalizedHeight || !['tall', 'medium', 'short'].includes(normalizedHeight)) {
+                throw new AppError(`Height must be "tall", "medium", or "short", received: "${height}"`, 400);
             }
             
             // Check if file exists
@@ -145,7 +166,7 @@ export const galleryController = {
                 url: imageUrl,
                 alt,
                 tags: parsedTags,
-                height
+                height: normalizedHeight as 'tall' | 'medium' | 'short'
             });
             
             res.status(201).json(successResponse('Gallery item added successfully', newItem));
@@ -181,13 +202,39 @@ export const galleryController = {
                 throw new AppError('Invalid gallery item ID', 400);
             }
             
-            // Parse tags if provided
+            // Parse tags if provided (handle single tag too)
             let parsedTags;
             if (tags) {
                 try {
-                    parsedTags = JSON.parse(tags);
+                    // If tags is a JSON string, parse it
+                    if (typeof tags === 'string' && (tags.startsWith('[') || tags.startsWith('"'))) {
+                        parsedTags = JSON.parse(tags);
+                        
+                        // If it's a single string (not in array format), convert to array
+                        if (typeof parsedTags === 'string') {
+                            parsedTags = [parsedTags];
+                        }
+                    } else {
+                        // If it's not JSON, treat as a single tag
+                        parsedTags = [tags];
+                    }
+                    
+                    // Ensure parsedTags is always an array
+                    if (!Array.isArray(parsedTags)) {
+                        parsedTags = [parsedTags];
+                    }
                 } catch (err) {
-                    throw new AppError('Tags must be a valid JSON array', 400);
+                    // If JSON parsing fails, treat as a single tag
+                    parsedTags = [tags];
+                }
+            }
+            
+            // Normalize height if provided
+            let normalizedHeight = undefined;
+            if (height) {
+                normalizedHeight = typeof height === 'string' ? height.trim().toLowerCase() : height;
+                if (!['tall', 'medium', 'short'].includes(normalizedHeight)) {
+                    throw new AppError(`Height must be "tall", "medium", or "short", received: "${height}"`, 400);
                 }
             }
             
@@ -195,7 +242,7 @@ export const galleryController = {
             const updatedItem = await galleryService.updateGalleryItem(itemId, {
                 alt,
                 tags: parsedTags,
-                height
+                height: normalizedHeight as 'tall' | 'medium' | 'short' | undefined
             });
             
             res.status(200).json(successResponse('Gallery item updated successfully', updatedItem));
