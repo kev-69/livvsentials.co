@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectTrigger,
@@ -9,8 +11,6 @@ import {
   SelectItem,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
 import {
   Card, 
   CardContent, 
@@ -29,8 +29,8 @@ import {
   AlertDialogTitle 
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { Pencil, Plus, Trash, Upload, X, ZoomIn, Loader2, Save } from 'lucide-react';
-import { addImageToGallery, updateGalleryImage, deleteGalleryImage } from '@/lib/api';
+import { X, Plus, Upload, Edit, Trash, Image as ImageIcon } from 'lucide-react';
+import { gallery } from '@/lib/api';
 
 interface GalleryImage {
   id: number;
@@ -59,16 +59,22 @@ const heightOptions = [
 ];
 
 const GallerySettings = ({ settings, onChange, onSave, isSaving }: GallerySettingsProps) => {
-  const [isUploading, setIsUploading] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
   const [newTag, setNewTag] = useState('');
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const [isAddingTag, setIsAddingTag] = useState(false);
   const [tagToDelete, setTagToDelete] = useState<string | null>(null);
+  const [tagToEdit, setTagToEdit] = useState<{oldTag: string, newTag: string} | null>(null);
   const [editImageId, setEditImageId] = useState<number | null>(null);
   const [editImageData, setEditImageData] = useState<Partial<GalleryImage>>({});
   const [deleteImageId, setDeleteImageId] = useState<number | null>(null);
-  const [showImageModal, setShowImageModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showAddItemModal, setShowAddItemModal] = useState(false);
+  const [newItemData, setNewItemData] = useState({
+    image: null as File | null,
+    alt: '',
+    tags: [] as string[],
+    height: 'medium' as 'tall' | 'medium' | 'short'
+  });
   
   // Initialize settings with default values to prevent undefined errors
   const gallerySettings = {
@@ -76,89 +82,26 @@ const GallerySettings = ({ settings, onChange, onSave, isSaving }: GallerySettin
     tags: settings?.tags || []
   };
   
-  // Handle file upload
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    
-    setIsUploading(true);
-    
-    // Create a form data object
-    const formData = new FormData();
-    formData.append('image', file);
-    formData.append('alt', 'New gallery image'); // Default alt text
-    formData.append('tags', JSON.stringify([])); // Empty tags array
-    formData.append('height', 'medium'); // Default height
-    
-    try {
-      const response = await addImageToGallery(formData);
-      
-      if (response) {
-        // Add new image to state
-        onChange('images', [...gallerySettings.images, response.data.data]);
-        toast.success('Image uploaded successfully');
-      } else {
-        toast.error('Failed to upload image');
+  // Load data from backend
+  useEffect(() => {
+    const loadGalleryData = async () => {
+      try {
+        const tags = await gallery.getTags();
+        const items = await gallery.getGalleryItems();
+        
+        onChange('tags', tags);
+        onChange('images', items);
+      } catch (error) {
+        console.error('Error loading gallery data:', error);
+        toast.error('Failed to load gallery data');
       }
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      toast.error('Failed to upload image. Please try again.');
-    } finally {
-      setIsUploading(false);
-    }
-  };
-  
-  // Delete an image
-  const deleteImage = async (id: number) => {
-    try {
-      const response = await deleteGalleryImage(id);
-      
-      if (response) {
-        // Remove image from state
-        onChange('images', gallerySettings.images.filter(img => img.id !== id));
-        toast.success('Image deleted successfully');
-      } else {
-        toast.error('Failed to delete image');
-      }
-    } catch (error) {
-      console.error('Error deleting image:', error);
-      toast.error('Failed to delete image. Please try again.');
-    } finally {
-      setDeleteImageId(null);
-    }
-  };
-  
-  // Update image metadata
-  const updateImage = async (id: number, data: Partial<GalleryImage>) => {
-    try {
-      // Create form data from the edit image data
-      const formData = new FormData();
-      if (data.alt) formData.append('alt', data.alt);
-      if (data.tags) formData.append('tags', JSON.stringify(data.tags));
-      if (data.height) formData.append('height', data.height);
-
-      const response = await updateGalleryImage(id, formData);
-      
-      if (response) {
-        // Update image in state
-        onChange('images', gallerySettings.images.map(img => 
-          img.id === id ? { ...img, ...data } : img
-        ));
-        toast.success('Image updated successfully');
-      } else {
-        toast.error('Failed to update image');
-      }
-    } catch (error) {
-      console.error('Error updating image:', error);
-      toast.error('Failed to update image. Please try again.');
-    } finally {
-      setEditImageId(null);
-      setEditImageData({});
-    }
-  };
+    };
+    
+    loadGalleryData();
+  }, []);
   
   // Add a new tag
-  const addTag = () => {
+  const addTag = async () => {
     if (!newTag.trim()) return;
     
     // Check if tag already exists
@@ -167,31 +110,103 @@ const GallerySettings = ({ settings, onChange, onSave, isSaving }: GallerySettin
       return;
     }
     
-    // Add new tag to state
-    const updatedTags = [...gallerySettings.tags, newTag.trim().toLowerCase()];
-    onChange('tags', updatedTags);
-    
-    setNewTag('');
-    setIsAddingTag(false);
-    toast.success('Tag added successfully');
+    setIsLoading(true);
+    try {
+      await gallery.addTag(newTag.trim().toLowerCase());
+      
+      // Add new tag to state
+      const updatedTags = [...gallerySettings.tags, newTag.trim().toLowerCase()];
+      onChange('tags', updatedTags);
+      
+      setNewTag('');
+      setIsAddingTag(false);
+      toast.success('Tag added successfully');
+    } catch (error) {
+      console.error('Error adding tag:', error);
+      toast.error('Failed to add tag');
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   // Delete a tag
-  const deleteTag = (tag: string) => {
-    // Remove tag from all images
-    const updatedImages = gallerySettings.images.map(img => ({
-      ...img,
-      tags: img.tags.filter(t => t !== tag)
-    }));
+  const deleteTag = async (tag: string) => {
+    setIsLoading(true);
+    try {
+      await gallery.removeTag(tag);
+      
+      // Remove tag from all images
+      const updatedImages = gallerySettings.images.map(img => ({
+        ...img,
+        tags: img.tags.filter(t => t !== tag)
+      }));
+      
+      // Remove tag from tags list
+      const updatedTags = gallerySettings.tags.filter(t => t !== tag);
+      
+      onChange('images', updatedImages);
+      onChange('tags', updatedTags);
+      
+      setTagToDelete(null);
+      toast.success('Tag deleted successfully');
+    } catch (error) {
+      console.error('Error deleting tag:', error);
+      toast.error('Failed to delete tag');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Edit/Update a tag
+  const startEditTag = (tag: string) => {
+    setTagToEdit({ oldTag: tag, newTag: tag });
+  };
+  
+  const updateTag = async () => {
+    if (!tagToEdit) return;
+    if (!tagToEdit.newTag.trim()) {
+      toast.error('Tag cannot be empty');
+      return;
+    }
     
-    // Remove tag from tags list
-    const updatedTags = gallerySettings.tags.filter(t => t !== tag);
+    if (tagToEdit.oldTag === tagToEdit.newTag) {
+      setTagToEdit(null);
+      return;
+    }
     
-    onChange('images', updatedImages);
-    onChange('tags', updatedTags);
+    // Check if new tag already exists
+    if (gallerySettings.tags.includes(tagToEdit.newTag.trim().toLowerCase()) && 
+        tagToEdit.oldTag !== tagToEdit.newTag.trim().toLowerCase()) {
+      toast.error('Tag already exists');
+      return;
+    }
     
-    setTagToDelete(null);
-    toast.success('Tag deleted successfully');
+    setIsLoading(true);
+    try {
+      await gallery.editTag(tagToEdit.oldTag, tagToEdit.newTag.trim().toLowerCase());
+      
+      // Update tag in all images
+      const updatedImages = gallerySettings.images.map(img => ({
+        ...img,
+        tags: img.tags.map(t => t === tagToEdit.oldTag ? tagToEdit.newTag.trim().toLowerCase() : t)
+      }));
+      
+      // Update tag in tags list
+      const updatedTags = gallerySettings.tags.map(t => 
+        t === tagToEdit.oldTag ? tagToEdit.newTag.trim().toLowerCase() : t
+      );
+      
+      onChange('images', updatedImages);
+      onChange('tags', updatedTags);
+      
+      setTagToEdit(null);
+      toast.success('Tag updated successfully');
+    } catch (error) {
+      console.error('Error updating tag:', error);
+      toast.error('Failed to update tag');
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   // Filter images based on selected tag
@@ -233,55 +248,90 @@ const GallerySettings = ({ settings, onChange, onSave, isSaving }: GallerySettin
     setEditImageData({ ...editImageData, tags: updatedTags });
   };
   
+  // Toggle tag selection for new item
+  const toggleNewItemTag = (tag: string) => {
+    const updatedTags = newItemData.tags.includes(tag)
+      ? newItemData.tags.filter(t => t !== tag)
+      : [...newItemData.tags, tag];
+    
+    setNewItemData({ ...newItemData, tags: updatedTags });
+  };
+  
+  // Handle file input change
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setNewItemData({ ...newItemData, image: e.target.files[0] });
+    }
+  };
+  
+  // Add new gallery item
+  const addGalleryItem = async () => {
+    if (!newItemData.image) {
+      toast.error('Please select an image');
+      return;
+    }
+    
+    if (!newItemData.alt.trim()) {
+      toast.error('Please provide alt text');
+      return;
+    }
+    
+    if (newItemData.tags.length === 0) {
+      toast.error('Please select at least one tag');
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', newItemData.image);
+      formData.append('alt', newItemData.alt);
+      formData.append('tags', JSON.stringify(newItemData.tags));
+      formData.append('height', newItemData.height);
+      
+      const newItem = await gallery.addToGallery(formData);
+      
+      // Update state with new item
+      onChange('images', [...gallerySettings.images, newItem]);
+      
+      setShowAddItemModal(false);
+      setNewItemData({
+        image: null,
+        alt: '',
+        tags: [],
+        height: 'medium'
+      });
+      
+      toast.success('Gallery item added successfully');
+    } catch (error) {
+      console.error('Error adding gallery item:', error);
+      toast.error('Failed to add gallery item');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Delete gallery item
+  const deleteGalleryItem = async (id: number) => {
+    setIsLoading(true);
+    try {
+      await gallery.deleteGalleryItem(id.toString());
+      
+      // Update state by removing the deleted item
+      onChange('images', gallerySettings.images.filter(img => img.id !== id));
+      
+      setDeleteImageId(null);
+      toast.success('Gallery item deleted successfully');
+    } catch (error) {
+      console.error('Error deleting gallery item:', error);
+      toast.error('Failed to delete gallery item');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h3 className="text-lg font-medium">Gallery Management</h3>
-          <p className="text-sm text-muted-foreground">
-            Manage images, tags, and layouts for your gallery page.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => document.getElementById('gallery-upload')?.click()}
-            disabled={isUploading}
-          >
-            {isUploading ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Upload className="h-4 w-4 mr-2" />
-            )}
-            Upload Image
-          </Button>
-          <input
-            id="gallery-upload"
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleFileUpload}
-            disabled={isUploading}
-          />
-          
-          <Button 
-            size="sm" 
-            onClick={onSave} 
-            disabled={isSaving}
-          >
-            {isSaving ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4 mr-2" />
-            )}
-            Save Changes
-          </Button>
-        </div>
-      </div>
-      
-      <Separator />
-      
       {/* Tags Management */}
       <Card>
         <CardHeader>
@@ -294,15 +344,61 @@ const GallerySettings = ({ settings, onChange, onSave, isSaving }: GallerySettin
           <div className="flex flex-wrap gap-2 mb-4">
             {gallerySettings.tags.map(tag => (
               <div key={tag} className="flex items-center gap-1 bg-secondary/20 px-3 py-1 rounded-full">
-                <span>{tag}</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-4 w-4 text-muted-foreground hover:text-destructive"
-                  onClick={() => setTagToDelete(tag)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
+                {tagToEdit && tagToEdit.oldTag === tag ? (
+                  <Input
+                    value={tagToEdit.newTag}
+                    onChange={(e) => setTagToEdit({ ...tagToEdit, newTag: e.target.value })}
+                    className="h-6 w-24"
+                    onKeyDown={(e) => e.key === 'Enter' && updateTag()}
+                    autoFocus
+                  />
+                ) : (
+                  <span>{tag}</span>
+                )}
+                
+                {tagToEdit && tagToEdit.oldTag === tag ? (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-4 w-4"
+                      onClick={updateTag}
+                      disabled={isLoading}
+                    >
+                      <Plus className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-4 w-4"
+                      onClick={() => setTagToEdit(null)}
+                      disabled={isLoading}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-4 w-4 text-muted-foreground hover:text-primary"
+                      onClick={() => startEditTag(tag)}
+                      disabled={isLoading}
+                    >
+                      <Edit className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-4 w-4 text-muted-foreground hover:text-destructive"
+                      onClick={() => setTagToDelete(tag)}
+                      disabled={isLoading}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </>
+                )}
               </div>
             ))}
             
@@ -314,12 +410,14 @@ const GallerySettings = ({ settings, onChange, onSave, isSaving }: GallerySettin
                   className="h-8 w-40"
                   placeholder="New tag..."
                   onKeyDown={(e) => e.key === 'Enter' && addTag()}
+                  autoFocus
                 />
                 <Button
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8"
                   onClick={addTag}
+                  disabled={isLoading}
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -331,6 +429,7 @@ const GallerySettings = ({ settings, onChange, onSave, isSaving }: GallerySettin
                     setIsAddingTag(false);
                     setNewTag('');
                   }}
+                  disabled={isLoading}
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -341,6 +440,7 @@ const GallerySettings = ({ settings, onChange, onSave, isSaving }: GallerySettin
                 size="sm"
                 className="rounded-full"
                 onClick={() => setIsAddingTag(true)}
+                disabled={isLoading}
               >
                 <Plus className="h-4 w-4 mr-1" />
                 Add Tag
@@ -352,11 +452,21 @@ const GallerySettings = ({ settings, onChange, onSave, isSaving }: GallerySettin
       
       {/* Gallery Images */}
       <Card>
-        <CardHeader>
-          <CardTitle>Gallery Images</CardTitle>
-          <CardDescription>
-            Manage your gallery images, their tags, and display properties
-          </CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Gallery Items</CardTitle>
+            <CardDescription>
+              Manage your gallery, their tags, and display properties
+            </CardDescription>
+          </div>
+          <Button
+            onClick={() => setShowAddItemModal(true)}
+            className="ml-auto"
+            disabled={isLoading}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add to Gallery
+          </Button>
         </CardHeader>
         <CardContent>
           {/* Filter Tags */}
@@ -389,168 +499,50 @@ const GallerySettings = ({ settings, onChange, onSave, isSaving }: GallerySettin
                 <Upload className="h-6 w-6 text-muted-foreground" />
               </div>
               <h3 className="text-lg font-medium">No images yet</h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Upload images to display in your gallery
+              <p className="text-muted-foreground mt-2">
+                Add images to your gallery by clicking the "Add to Gallery" button.
               </p>
-              <Button
-                variant="outline"
-                className="mt-4"
-                onClick={() => document.getElementById('gallery-upload')?.click()}
-              >
-                Upload your first image
-              </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-min">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredImages.map(image => (
-                <div
-                  key={image.id}
-                  className={`relative group rounded-md overflow-hidden border ${getGridSpanClass(image.height)}`}
+                <div 
+                  key={image.id} 
+                  className={`relative rounded-lg overflow-hidden border border-border ${getGridSpanClass(image.height)}`}
                 >
-                  {editImageId === image.id ? (
-                    <div className="absolute inset-0 bg-background/95 backdrop-blur-sm p-3 z-10 flex flex-col">
-                      <div className="flex justify-between items-center mb-2">
-                        <h4 className="font-medium">Edit Image</h4>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={() => {
-                            setEditImageId(null);
-                            setEditImageData({});
-                          }}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      
-                      <div className="space-y-3 flex-1 overflow-y-auto">
-                        <div>
-                          <Label htmlFor={`alt-${image.id}`}>Alt Text</Label>
-                          <Input
-                            id={`alt-${image.id}`}
-                            value={editImageData.alt || ''}
-                            onChange={(e) => setEditImageData({ ...editImageData, alt: e.target.value })}
-                            className="mt-1"
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor={`height-${image.id}`}>Image Height</Label>
-                          <Select
-                            value={editImageData.height}
-                            onValueChange={(value) => setEditImageData({ ...editImageData, height: value as 'tall' | 'medium' | 'short' })}
-                          >
-                            <SelectTrigger id={`height-${image.id}`} className="mt-1">
-                              <SelectValue placeholder="Select height" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {heightOptions.map(option => (
-                                <SelectItem key={option.value} value={option.value}>
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        
-                        <div>
-                          <Label>Tags</Label>
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {gallerySettings.tags.map(tag => (
-                              <Badge
-                                key={tag}
-                                variant={editImageData.tags?.includes(tag) ? 'default' : 'outline'}
-                                className="cursor-pointer"
-                                onClick={() => toggleImageTag(tag)}
-                              >
-                                {tag}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex justify-end gap-2 mt-3">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setEditImageId(null);
-                            setEditImageData({});
-                          }}
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={() => updateImage(image.id, editImageData)}
-                        >
-                          Save
-                        </Button>
-                      </div>
-                    </div>
-                  ) : null}
-                  
-                  <img
-                    src={image.url}
-                    alt={image.alt}
-                    className="w-full h-full object-cover aspect-square"
+                  <img 
+                    src={image.url} 
+                    alt={image.alt} 
+                    className="w-full h-full object-cover"
                   />
-                  
-                  {/* Overlay with actions */}
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                    <div className="flex gap-1">
+                  <div className="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity flex flex-col justify-between p-3">
+                    <div className="flex justify-end">
                       <Button
-                        variant="secondary"
+                        variant="ghost"
                         size="icon"
-                        className="rounded-full"
-                        onClick={() => {
-                          setSelectedImage(image);
-                          setShowImageModal(true);
-                        }}
-                      >
-                        <ZoomIn className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        size="icon"
-                        className="rounded-full"
+                        className="h-8 w-8 text-white hover:bg-white/20"
                         onClick={() => startEditing(image)}
                       >
-                        <Pencil className="h-4 w-4" />
+                        <Edit className="h-4 w-4" />
                       </Button>
                       <Button
-                        variant="destructive"
+                        variant="ghost"
                         size="icon"
-                        className="rounded-full"
+                        className="h-8 w-8 text-white hover:bg-white/20"
                         onClick={() => setDeleteImageId(image.id)}
                       >
                         <Trash className="h-4 w-4" />
                       </Button>
                     </div>
-                  </div>
-                  
-                  {/* Tags display */}
-                  <div className="absolute bottom-1 left-1 right-1 p-1">
-                    <div className="flex flex-wrap gap-1 text-xs">
-                      {image.tags.slice(0, 3).map(tag => (
-                        <Badge
-                          key={tag}
-                          variant="secondary"
-                          className="text-[10px] px-1.5 py-0"
-                        >
-                          {tag}
-                        </Badge>
-                      ))}
-                      {image.tags.length > 3 && (
-                        <Badge
-                          variant="outline"
-                          className="text-[10px] px-1.5 py-0"
-                        >
-                          +{image.tags.length - 3}
-                        </Badge>
-                      )}
+                    <div>
+                      <p className="text-white text-sm mb-1">{image.alt}</p>
+                      <div className="flex flex-wrap gap-1">
+                        {image.tags.map(tag => (
+                          <span key={tag} className="text-xs bg-white/20 text-white px-2 py-0.5 rounded-full">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -566,14 +558,16 @@ const GallerySettings = ({ settings, onChange, onSave, isSaving }: GallerySettin
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will remove the tag "{tagToDelete}" from all images. This action cannot be undone.
+              This will delete the tag "{tagToDelete}" and remove it from all associated images.
+              This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
               onClick={() => tagToDelete && deleteTag(tagToDelete)}
+              disabled={isLoading}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete
             </AlertDialogAction>
@@ -585,16 +579,18 @@ const GallerySettings = ({ settings, onChange, onSave, isSaving }: GallerySettin
       <AlertDialog open={!!deleteImageId} onOpenChange={() => setDeleteImageId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Image</AlertDialogTitle>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this image from your gallery. This action cannot be undone.
+              This will permanently delete this image from your gallery.
+              This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
+            <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => deleteImageId && deleteGalleryItem(deleteImageId)}
+              disabled={isLoading}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => deleteImageId && deleteImage(deleteImageId)}
             >
               Delete
             </AlertDialogAction>
@@ -602,51 +598,125 @@ const GallerySettings = ({ settings, onChange, onSave, isSaving }: GallerySettin
         </AlertDialogContent>
       </AlertDialog>
       
-      {/* Image Preview Modal */}
-      {showImageModal && selectedImage && (
-        <div 
-          className="fixed inset-0 z-50 bg-black bg-opacity-80 flex items-center justify-center p-4"
-          onClick={() => {
-            setShowImageModal(false);
-            setSelectedImage(null);
-          }}
-        >
-          <div className="absolute top-4 right-4 z-10">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-white hover:bg-white/20"
-              onClick={() => {
-                setShowImageModal(false);
-                setSelectedImage(null);
-              }}
-            >
-              <X className="w-5 h-5" />
-            </Button>
-          </div>
+      {/* Add Gallery Item Modal */}
+      <AlertDialog open={showAddItemModal} onOpenChange={setShowAddItemModal}>
+        <AlertDialogContent className="sm:max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Add to Gallery</AlertDialogTitle>
+            <AlertDialogDescription>
+              Upload an image and provide details for your gallery item.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
           
-          <img 
-            src={selectedImage.url} 
-            alt={selectedImage.alt} 
-            className="max-h-[90vh] max-w-full object-contain rounded-lg shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          />
-          
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent">
-            <p className="text-white font-medium">{selectedImage.alt}</p>
-            <div className="flex flex-wrap gap-1 mt-2">
-              {selectedImage.tags.map(tag => (
-                <span 
-                  key={tag} 
-                  className="text-xs bg-white bg-opacity-20 backdrop-blur-sm text-white px-2 py-1 rounded-full"
-                >
-                  {tag}
-                </span>
-              ))}
+          <div className="space-y-4 py-4">
+            {/* Image Upload */}
+            <div className="grid w-full items-center gap-1.5">
+              <Label htmlFor="gallery-image">Image</Label>
+              <div className="flex items-center gap-2">
+                {newItemData.image ? (
+                  <div className="relative w-24 h-24 rounded-md overflow-hidden border border-border">
+                    <img 
+                      src={URL.createObjectURL(newItemData.image)} 
+                      alt="Preview" 
+                      className="w-full h-full object-cover"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-0 right-0 h-6 w-6 bg-black/60 text-white hover:bg-black/80"
+                      onClick={() => setNewItemData({ ...newItemData, image: null })}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center w-24 h-24 rounded-md border border-dashed border-border">
+                    <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                )}
+                <div className="flex-1">
+                  <Input
+                    id="gallery-image"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="cursor-pointer"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Recommended size: 1200x800px, max 5MB
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Alt Text */}
+            <div className="grid w-full items-center gap-1.5">
+              <Label htmlFor="alt-text">Alt Text</Label>
+              <Textarea
+                id="alt-text"
+                placeholder="Describe this image for accessibility..."
+                value={newItemData.alt}
+                onChange={(e: any) => setNewItemData({ ...newItemData, alt: e.target.value })}
+                className="resize-none"
+                rows={2}
+              />
+            </div>
+            
+            {/* Image Height */}
+            <div className="grid w-full items-center gap-1.5">
+              <Label htmlFor="image-height">Height</Label>
+              <Select 
+                value={newItemData.height} 
+                onValueChange={(value) => setNewItemData({ ...newItemData, height: value as 'tall' | 'medium' | 'short' })}
+              >
+                <SelectTrigger id="image-height">
+                  <SelectValue placeholder="Select height" />
+                </SelectTrigger>
+                <SelectContent>
+                  {heightOptions.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Tags */}
+            <div className="grid w-full items-center gap-1.5">
+              <Label>Tags</Label>
+              <div className="flex flex-wrap gap-2 p-2 border rounded-md">
+                {gallerySettings.tags.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No tags available. Create tags first.</p>
+                ) : (
+                  gallerySettings.tags.map(tag => (
+                    <div key={tag} className="flex items-center gap-1.5">
+                      <Checkbox 
+                        id={`tag-${tag}`}
+                        checked={newItemData.tags.includes(tag)}
+                        onCheckedChange={() => toggleNewItemTag(tag)}
+                      />
+                      <Label htmlFor={`tag-${tag}`} className="text-sm cursor-pointer">
+                        {tag}
+                      </Label>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+          
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={addGalleryItem}
+              disabled={isLoading || !newItemData.image || !newItemData.alt.trim() || newItemData.tags.length === 0}
+            >
+              {isLoading ? 'Adding...' : 'Add to Gallery'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
