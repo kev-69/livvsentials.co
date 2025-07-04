@@ -4,8 +4,10 @@ import { get, post } from '../lib/api';
 import { useCart } from '../hooks/useCart';
 import { useWishlist } from '../hooks/useWishlist';
 import { toast, Toaster } from 'sonner';
-import { Star, ArrowLeft, Share2 } from 'lucide-react';
+import { Star, ArrowLeft } from 'lucide-react';
 import type { Product } from '../types/product';
+import { FullPageLoader } from '../components/ui/BrandedLoader';
+
 
 // Import components
 import ProductImageGallery from '../components/products/ProductImageGallery';
@@ -27,6 +29,7 @@ const ProductDetails = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Fetch product details
   useEffect(() => {
@@ -39,7 +42,9 @@ const ProductDetails = () => {
         console.error('Error fetching product:', error);
         setError('Failed to load product details. Please try again later.');
       } finally {
-        setLoading(false);
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 1000);
       }
     };
     
@@ -207,12 +212,8 @@ const ProductDetails = () => {
   };
   
   // Loading state
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-16 flex justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
+  if (isLoading) {
+    return <FullPageLoader animation="wave" />;
   }
   
   // Error state
