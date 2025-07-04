@@ -426,45 +426,98 @@ export const updatePlatformSetting = async (key: string, value: any) => {
   }
 };
 
-export const addImageToGallery = async (imageData: FormData ) => {
-  try {
-    const response = await api.post('/admin/settings/gallery/image', imageData)
-    return response.data.data
-  } catch (error) {
-    console.error('Error adding image to gallery:', error);
-    throw error;
-  }
-}
+export const gallery = {
+  getTags: async () => {
+    try {
+      const response = await api.get('/admin/gallery/tags');
+      return response.data.data;
+    } catch (error) {
+      console.error("Error fetching tags", error);
+      throw error;
+    }
+  },
 
-export const updateGalleryImage = async (id: number, imageData: FormData) => {
-  try {
-    const response = await api.patch(`/admin/settings/gallery/image/${id}`, imageData)
-    return response.data.data
-  } catch (error) {
-    console.error('Error updating gallery image:', error);
-    throw error;
-  }
-}
+  addTag: async (tag: string) => {
+    try {
+      // Fix: Send tag as an object with property 'tag'
+      const response = await api.post('/admin/gallery/tags', { tag });
+      return response.data.data;
+    } catch (error) {
+      console.error('Error adding tag', error);
+      throw error;
+    }
+  },
 
-export const deleteGalleryImage = async (id: number) => {
-  try {
-      const response = await api.delete(`/admin/settings/gallery/image/${id}`)
+  editTag: async (oldTag: string, newTag: string) => {
+    try {
+      const response = await api.put('/admin/gallery/tags', { oldTag, newTag });
+      return response.data.data;
+    } catch (error) {
+      console.error('Error updating tag', error);
+      throw error;
+    }
+  },
+
+  removeTag: async (tag: string) => {
+    try {
+      const response = await api.delete(`/admin/gallery/tags/${tag}`);
+      return response.data.data;
+    } catch (error) {
+      console.error('Error deleting tag', error);
+      throw error;
+    }
+  },
+
+  getGalleryItems: async () => {
+    try {
+      const response = await api.get('/admin/gallery/items');
       return response.data.data
-  } catch (error) {
-    console.error('Error deleting image from gallery:', error);
-    throw error;
+    } catch (error) {
+      console.error('Error adding item', error);
+      throw error
+    }
+  },
+
+  addToGallery: async (itemData: FormData) => {
+    try {
+      const response = await api.post('/admin/gallery/items', itemData);
+      return response.data.data
+    } catch (error) {
+      console.error('Error adding to gallery', error);
+      throw error
+    }
+  },
+
+  updateGalleryItem: async (itemData: FormData, id: string) => {
+    try {
+      const response = await api.patch(`/admin/gallery/items/${id}`, itemData);
+      return response.data.data
+    } catch (error) {
+      console.error('Error updating gallery item', error);
+      throw error
+    }
+  },
+
+  deleteGalleryItem: async (id: string) => {
+    try {
+      const response = await api.delete(`/admin/gallery/items/${id}`)
+      return response.data.data
+    } catch (error) {
+      console.error('Error deleting gallery item', error);
+      throw error
+    }
   }
-}
+};
 
 export const fetchReviews = async () => {
   try {
     const response = await api.get('/admin/reviews');
-    return response.data.data;
+    return response.data.data
   } catch (error) {
-    console.error('Error fetching reviews:', error);
-    throw error;
+    console.error('Error fetching reviews', error);
+    throw error
   }
-};
+}
 
 export const fetchReviewById = async (reviewId: string) => {
   try {
