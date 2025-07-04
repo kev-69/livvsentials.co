@@ -490,11 +490,16 @@ export const gallery = {
 
   updateGalleryItem: async (itemData: FormData, id: string) => {
     try {
-      const response = await api.patch(`/admin/gallery/items/${id}`, itemData);
-      return response.data.data
+      // Fix: use patch instead of put, and ensure correct URL format
+      const response = await api.patch(`/admin/gallery/items/${id}`, itemData, {
+        headers: {
+          'Content-Type': 'multipart/form-data', // Ensure correct content type
+        },
+      });
+      return response.data.data;
     } catch (error) {
       console.error('Error updating gallery item', error);
-      throw error
+      throw error;
     }
   },
 
