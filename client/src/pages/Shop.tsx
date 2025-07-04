@@ -5,6 +5,7 @@ import { get } from '../lib/api';
 import { useCart } from '../hooks/useCart';
 import { useWishlist } from '../hooks/useWishlist';
 import { AuthContext } from '../context/AuthContext';
+import { FullPageLoader } from '../components/ui/BrandedLoader';
 
 // Import types
 import type { Product, Category } from '../types/product';
@@ -23,6 +24,8 @@ const Shop = () => {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+
   const [error, setError] = useState('');
   const { addToCart } = useCart();
   const { toggleWishlistItem } = useWishlist();
@@ -64,6 +67,10 @@ const Shop = () => {
         setError('Failed to load products. Please try again later.');
         setLoading(false);
         console.error('Error fetching shop data:', error);
+      } finally {
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 1000); // Simulate loading delay
       }
     };
     
@@ -226,6 +233,10 @@ const Shop = () => {
     const endIndex = startIndex + productsPerPage;
     return filteredProducts.slice(startIndex, endIndex);
   };
+
+  if (isLoading) {
+    return <FullPageLoader animation="wave" />;
+  }
 
   return (
     <div className="bg-gray-50 min-h-screen">
