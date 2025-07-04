@@ -6,8 +6,7 @@ import { uploadImage, deleteImage } from "../../../configs/cloudinary.config";
 import fs from 'fs';
 
 export const galleryController = {
-    // ===== Tag Management =====
-    
+    // ===== Tag Management ===== 
     // Get all tags
     getAllTags: async (req: Request, res: Response) => {
         try {
