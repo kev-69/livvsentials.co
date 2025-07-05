@@ -5,8 +5,8 @@ interface CheckoutStepsProps {
 const CheckoutSteps = ({ currentStep }: CheckoutStepsProps) => {
   const steps = [
     { number: 1, name: 'Shipping' },
-    { number: 2, name: 'Payment' },
-    { number: 3, name: 'Review' },
+    { number: 2, name: 'Review' },
+    { number: 3, name: 'Payment' },
   ];
 
   return (
