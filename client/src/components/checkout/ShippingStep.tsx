@@ -19,10 +19,10 @@ const ShippingStep = ({
   onAddressCreate,
   onNext,
 }: ShippingStepProps) => {
-  const [showAddressForm, setShowAddressForm] = useState(!isAuthenticated || savedAddresses.length === 0);
+  const [showAddressForm, setShowAddressForm] = useState(false);
   
   const handleContinue = () => {
-    if (!selectedAddress && !showAddressForm) {
+    if (!selectedAddress) {
       // Show error - no address selected
       return;
     }
@@ -34,9 +34,13 @@ const ShippingStep = ({
     <div>
       <h2 className="text-lg font-medium text-gray-900 mb-4">Shipping Address</h2>
       
-      {/* Saved Addresses (for authenticated users) */}
-      {isAuthenticated && savedAddresses.length > 0 && !showAddressForm && (
-        <div>
+      {/* Saved Addresses section - always visible now */}
+      <div className="mb-6">
+        <h3 className="text-sm font-medium text-gray-700 mb-3">
+          {savedAddresses.length > 0 ? 'Select a shipping address' : 'No saved addresses'}
+        </h3>
+        
+        {savedAddresses.length > 0 && (
           <div className="space-y-4 mb-4">
             {savedAddresses.map((address) => (
               <div 
@@ -44,7 +48,7 @@ const ShippingStep = ({
                 onClick={() => onAddressSelect(address)}
                 className={`p-4 border rounded-md cursor-pointer ${
                   selectedAddress?.id === address.id 
-                    ? 'border-primary bg-primary bg-opacity-5 text-white' 
+                    ? 'border-primary bg-primary bg-opacity-5' 
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
@@ -68,26 +72,32 @@ const ShippingStep = ({
               </div>
             ))}
           </div>
-          
-          <button
-            type="button"
-            onClick={() => setShowAddressForm(true)}
-            className="text-primary hover:text-primary-dark text-sm font-medium"
-          >
-            + Add a new address
-          </button>
+        )}
+        
+        <button
+          type="button"
+          onClick={() => setShowAddressForm(true)}
+          className="text-primary hover:text-primary-dark text-sm font-medium"
+        >
+          + Add a new address
+        </button>
+      </div>
+      
+      {/* Address Form (conditionally shown) */}
+      {showAddressForm && (
+        <div className="mt-4 border-t pt-4">
+          <h3 className="text-sm font-medium text-gray-700 mb-3">Add new address</h3>
+          <AddressForm 
+            onSubmit={(address) => {
+              onAddressCreate(address);
+              setShowAddressForm(false);
+            }}
+            onCancel={() => setShowAddressForm(false)}
+          />
         </div>
       )}
       
-      {/* Address Form (for new addresses or guest checkout) */}
-      {showAddressForm && (
-        <AddressForm 
-          onSubmit={onAddressCreate}
-          onCancel={isAuthenticated && savedAddresses.length > 0 ? () => setShowAddressForm(false) : undefined}
-        />
-      )}
-      
-      {/* Continue Button */}
+      {/* Continue Button - only show when not adding a new address */}
       {!showAddressForm && (
         <div className="mt-6">
           <button
@@ -96,7 +106,7 @@ const ShippingStep = ({
             disabled={!selectedAddress}
             className="w-full py-3 px-4 bg-primary text-white rounded-md hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Continue to Payment
+            Continue to Review
           </button>
         </div>
       )}
