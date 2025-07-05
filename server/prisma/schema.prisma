@@ -399,13 +399,11 @@ model Payment {
 }
 
 enum PaymentMethod {
-    MOBILE_MONEY
-    CREDIT_CARD
+    PAYSTACK
 }
 
 enum PaymentStatus {
     PROCESSING
     COMPLETED
     CANCELLED
-    REFUNDED
 }
