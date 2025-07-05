@@ -5,7 +5,7 @@ import { errorResponse, successResponse } from "../../../utils/response";
 import { PaymentMethod } from "@prisma/client";
 import { z } from 'zod';
 import crypto from 'crypto';
-
+import logger from "../../../utils/logger";
 
 // Validation schema for initiating payment
 const initiatePaymentSchema = z.object({
@@ -99,14 +99,32 @@ export const checkoutController = {
         throw new AppError('Payment reference is required', 400);
       }
       
+      // Check if we already have an existing payment record with this reference
+      const existingPayment = await checkoutService.findExistingPayment(reference);
+      if (existingPayment) {
+        // If we already have the payment in our database, we can consider it verified
+        res.status(200).json({
+          verified: true,
+          data: {
+            reference: existingPayment.transactionId,
+            status: 'success'
+          }
+        });
+        return; // Use return without a value to exit early
+      }
+      
+      // If no existing payment, then verify with Paystack
       const verification = await checkoutService.verifyPaystackPayment(reference);
       
+      // Send response here if we didn't already send one for an existing payment
       res.status(200).json(verification);
     } catch (error) {
+      logger.error(`Payment verification error for reference ${req.params.reference}:`, error);
+      
       if (error instanceof AppError) {
         res.status(error.statusCode).json(errorResponse(error.message));
       } else {
-        res.status(500).json(errorResponse('An unknown error occurred'));
+        res.status(500).json(errorResponse('An error occurred during payment verification. Please try again.'));
       }
     }
   },
@@ -142,40 +160,41 @@ export const checkoutController = {
   // Paystack webhook handler
   paystackWebhook: async (req: Request, res: Response) => {
     try {
-        // Verify the request is from Paystack
-        const hash = req.headers['x-paystack-signature'] as string;
-        const secretKey = process.env.PAYSTACK_SECRET_KEY!;
-        
-        if (hash) {
-            const signature = crypto
-                .createHmac('sha512', secretKey)
-                .update(JSON.stringify(req.body))
-                .digest('hex');
-                
-            if (hash !== signature) {
-                res.status(200).send('Webhook received');
-                return;
-            }
+      // Verify the request is from Paystack
+      const hash = req.headers['x-paystack-signature'] as string;
+      const secretKey = process.env.PAYSTACK_SECRET_KEY!;
+      
+      if (hash) {
+        const signature = crypto
+          .createHmac('sha512', secretKey)
+          .update(JSON.stringify(req.body))
+          .digest('hex');
+          
+        if (hash !== signature) {
+          res.status(200).send('Webhook received');
+          return;
         }
-        
-        const event = req.body;
-        
-        // Handle different event types
-        if (event.event === 'charge.success') {
+      }
+      
+      const event = req.body;
+      
+      // Handle different event types
+      if (event.event === 'charge.success') {
         const { reference } = event.data;
         
         try {
-            // Update payment status
-            await checkoutService.updatePaymentStatus(reference, true);
+          // Update payment status
+          await checkoutService.updatePaymentStatus(reference, true);
         } catch (error) {
-            console.error('Error updating payment status:', error);}
+          logger.error('Error updating payment status:', error);
         }
-        
-        // Always return a 200 to Paystack
-        res.status(200).send('Webhook received');
+      }
+      
+      // Always return a 200 to Paystack
+      res.status(200).send('Webhook received');
     } catch (error) {
-        // Still return 200 to Paystack
-        res.status(200).send('Webhook received');
+      // Still return 200 to Paystack
+      res.status(200).send('Webhook received');
     }
   },
   
