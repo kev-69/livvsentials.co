@@ -1,32 +1,21 @@
-import { MapPin, CreditCard, Smartphone, Truck } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import type { Cart } from '../../types/cart';
 import type { Address } from '../../types/user';
-
-interface PaymentMethod {
-  type: 'CARD' | 'MOBILE_MONEY' | 'CASH_ON_DELIVERY';
-  details: {
-    cardNumber?: string;
-    mobileNumber?: string;
-    provider?: string;
-  };
-}
 
 interface ReviewStepProps {
   cart: Cart;
   shippingAddress: Address | null;
-  paymentMethod: PaymentMethod | null;
   isLoading: boolean;
   onPrevious: () => void;
-  onPlaceOrder: () => void;
+  onNext: () => void;
 }
 
 const ReviewStep = ({
   cart,
   shippingAddress,
-  paymentMethod,
   isLoading,
   onPrevious,
-  onPlaceOrder,
+  onNext,
 }: ReviewStepProps) => {
   // Format price
   const formatPrice = (price: number) => {
@@ -40,35 +29,7 @@ const ReviewStep = ({
       return sum + price * item.quantity;
     }, 0);
   };
-  
-  // Get payment method icon and text
-  const getPaymentMethodInfo = () => {
-    switch (paymentMethod?.type) {
-      case 'CARD':
-        return {
-          icon: <CreditCard className="h-5 w-5 text-gray-500" />,
-          text: `Card ending in ${paymentMethod.details.cardNumber?.slice(-4) || '****'}`,
-        };
-      case 'MOBILE_MONEY':
-        return {
-          icon: <Smartphone className="h-5 w-5 text-gray-500" />,
-          text: `Mobile Money - ${paymentMethod.details.provider?.toUpperCase() || 'Unknown'} (${paymentMethod.details.mobileNumber || 'Unknown'})`,
-        };
-      case 'CASH_ON_DELIVERY':
-        return {
-          icon: <Truck className="h-5 w-5 text-gray-500" />,
-          text: 'Cash on Delivery',
-        };
-      default:
-        return {
-          icon: <CreditCard className="h-5 w-5 text-gray-500" />,
-          text: 'Unknown payment method',
-        };
-    }
-  };
-  
-  const paymentInfo = getPaymentMethodInfo();
-  
+    
   // Use cartItems directly
   const items = cart.cartItems || [];
   
@@ -89,18 +50,6 @@ const ReviewStep = ({
               {shippingAddress.city}, {shippingAddress.region} {shippingAddress.postalCode}
             </p>
             <p className="text-sm text-gray-600 mt-1">{shippingAddress.phone}</p>
-          </div>
-        </div>
-      )}
-      
-      {/* Payment Method Summary */}
-      {paymentMethod && (
-        <div className="mb-6">
-          <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-            {paymentInfo.icon} <span className="ml-1">Payment Method</span>
-          </h3>
-          <div className="bg-gray-50 p-3 rounded-md">
-            <p className="text-sm text-gray-700">{paymentInfo.text}</p>
           </div>
         </div>
       )}
@@ -190,15 +139,15 @@ const ReviewStep = ({
           className="mt-3 sm:mt-0 w-full sm:w-auto py-3 px-4 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
           disabled={isLoading}
         >
-          Back to Payment
+          Back to Shipping
         </button>
         <button
           type="button"
-          onClick={onPlaceOrder}
+          onClick={onNext}
           className="w-full sm:w-auto py-3 px-6 bg-primary text-white rounded-md hover:bg-opacity-90 disabled:opacity-70"
           disabled={isLoading}
         >
-          {isLoading ? 'Processing...' : 'Place Order'}
+          Continue to Payment
         </button>
       </div>
     </div>
