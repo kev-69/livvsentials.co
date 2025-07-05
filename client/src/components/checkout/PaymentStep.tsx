@@ -1,59 +1,26 @@
 import { useState } from 'react';
-import { CreditCard, Smartphone, Truck } from 'lucide-react';
-import CardPaymentForm from './CardPaymentForm';
-import MobileMoneyForm from './MobileMoneyForm';
+import PaystackCheckout from './PaystackCheckout'; // We'll create this component
 
 interface PaymentMethod {
-  type: 'CARD' | 'MOBILE_MONEY' | 'CASH_ON_DELIVERY';
-  details: {
-    cardNumber?: string;
-    mobileNumber?: string;
-    provider?: string;
-  };
+  type: 'PAYSTACK';
 }
 
 interface PaymentStepProps {
-  selectedPaymentMethod: PaymentMethod | null;
   onPaymentSelect: (method: PaymentMethod) => void;
   onPrevious: () => void;
   onNext: () => void;
 }
 
 const PaymentStep = ({
-  selectedPaymentMethod,
   onPaymentSelect,
   onPrevious,
   onNext,
 }: PaymentStepProps) => {
-  const [paymentType, setPaymentType] = useState<'CARD' | 'MOBILE_MONEY' | 'CASH_ON_DELIVERY'>(
-    selectedPaymentMethod?.type || 'CARD'
-  );
-  
-  const handleCardPaymentSubmit = (details: { cardNumber: string }) => {
+  const [paymentType, setPaymentType] = useState<'PAYSTACK'>();
+
+  const handlePaystackPayment = () => {
     onPaymentSelect({
-      type: 'CARD',
-      details: {
-        cardNumber: details.cardNumber,
-      },
-    });
-    onNext();
-  };
-  
-  const handleMobileMoneySubmit = (details: { mobileNumber: string; provider: string }) => {
-    onPaymentSelect({
-      type: 'MOBILE_MONEY',
-      details: {
-        mobileNumber: details.mobileNumber,
-        provider: details.provider,
-      },
-    });
-    onNext();
-  };
-  
-  const handleCashOnDeliverySelect = () => {
-    onPaymentSelect({
-      type: 'CASH_ON_DELIVERY',
-      details: {},
+      type: 'PAYSTACK',
     });
     onNext();
   };
@@ -64,46 +31,23 @@ const PaymentStep = ({
       
       {/* Payment Options */}
       <div className="mb-6">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
           <div
-            onClick={() => setPaymentType('CARD')}
+            onClick={() => setPaymentType('PAYSTACK')}
             className={`p-4 border rounded-md cursor-pointer flex flex-col items-center justify-center transition-colors ${
-              paymentType === 'CARD'
+              paymentType === 'PAYSTACK'
                 ? 'border-primary bg-primary bg-opacity-5'
                 : 'border-gray-200 hover:border-gray-300'
             }`}
           >
-            <CreditCard className={`mb-2 ${paymentType === 'CARD' ? 'text-primary' : 'text-gray-500'}`} />
-            <span className={`text-sm font-medium ${paymentType === 'CARD' ? 'text-primary' : 'text-gray-700'}`}>
-              Credit/Debit Card
-            </span>
-          </div>
-          
-          <div
-            onClick={() => setPaymentType('MOBILE_MONEY')}
-            className={`p-4 border rounded-md cursor-pointer flex flex-col items-center justify-center transition-colors ${
-              paymentType === 'MOBILE_MONEY'
-                ? 'border-primary bg-primary bg-opacity-5'
-                : 'border-gray-200 hover:border-gray-300'
-            }`}
-          >
-            <Smartphone className={`mb-2 ${paymentType === 'MOBILE_MONEY' ? 'text-primary' : 'text-gray-500'}`} />
-            <span className={`text-sm font-medium ${paymentType === 'MOBILE_MONEY' ? 'text-primary' : 'text-gray-700'}`}>
-              Mobile Money
-            </span>
-          </div>
-          
-          <div
-            onClick={() => setPaymentType('CASH_ON_DELIVERY')}
-            className={`p-4 border rounded-md cursor-pointer flex flex-col items-center justify-center transition-colors ${
-              paymentType === 'CASH_ON_DELIVERY'
-                ? 'border-primary bg-primary bg-opacity-5'
-                : 'border-gray-200 hover:border-gray-300'
-            }`}
-          >
-            <Truck className={`mb-2 ${paymentType === 'CASH_ON_DELIVERY' ? 'text-primary' : 'text-gray-500'}`} />
-            <span className={`text-sm font-medium ${paymentType === 'CASH_ON_DELIVERY' ? 'text-primary' : 'text-gray-700'}`}>
-              Cash on Delivery
+            <div className="mb-2 h-6 w-6 flex items-center justify-center">
+              <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18.6 4.8H5.4C3.52 4.8 2 6.32 2 8.2V15.8C2 17.68 3.52 19.2 5.4 19.2H18.6C20.48 19.2 22 17.68 22 15.8V8.2C22 6.32 20.48 4.8 18.6 4.8Z" 
+                  fill={paymentType === 'PAYSTACK' ? '#3BB75E' : '#D1D5DB'} />
+              </svg>
+            </div>
+            <span className={`text-sm font-medium ${paymentType === 'PAYSTACK' ? 'text-primary' : 'text-gray-700'}`}>
+              Paystack
             </span>
           </div>
         </div>
@@ -111,28 +55,8 @@ const PaymentStep = ({
       
       {/* Payment Form based on selected type */}
       <div className="mb-6">
-        {paymentType === 'CARD' && (
-          <CardPaymentForm onSubmit={handleCardPaymentSubmit} />
-        )}
-        
-        {paymentType === 'MOBILE_MONEY' && (
-          <MobileMoneyForm onSubmit={handleMobileMoneySubmit} />
-        )}
-        
-        {paymentType === 'CASH_ON_DELIVERY' && (
-          <div className="p-4 bg-gray-50 rounded-md">
-            <p className="text-gray-700 mb-4">
-              You will pay when your order is delivered. Please have the exact amount ready.
-            </p>
-            
-            <button
-              type="button"
-              onClick={handleCashOnDeliverySelect}
-              className="w-full py-3 px-4 bg-primary text-white rounded-md hover:bg-opacity-90"
-            >
-              Continue with Cash on Delivery
-            </button>
-          </div>
+        {paymentType === 'PAYSTACK' && (
+          <PaystackCheckout onPaymentComplete={handlePaystackPayment} />
         )}
       </div>
       
@@ -143,7 +67,7 @@ const PaymentStep = ({
           onClick={onPrevious}
           className="w-full py-3 px-4 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
         >
-          Back to Shipping
+          Back to Review
         </button>
       </div>
     </div>
