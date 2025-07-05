@@ -14,6 +14,9 @@ const PaymentStatus = () => {
   const { user } = useAuth();
   const [status, setStatus] = useState<'loading' | 'success' | 'failed'>('loading');
   const [orderId, setOrderId] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 2;
   
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
@@ -27,9 +30,33 @@ const PaymentStatus = () => {
     const processPayment = async () => {
       try {
         // 1. Verify the payment
-        const verification = await get(`/checkout/verify-payment/${reference}`);
+        let verification;
+        try {
+          verification = await get(`/checkout/verify-payment/${reference}`);
+        } catch (error) {
+          const verifyError = error as any; // Type assertion for error object
+          console.error('Error verifying payment:', verifyError);
+          
+          // If we still have retries left, retry after a delay
+          if (retryCount < MAX_RETRIES) {
+            setRetryCount(prev => prev + 1);
+            toast.info(`Retrying payment verification (${retryCount + 1}/${MAX_RETRIES})...`);
+            setTimeout(() => setIsProcessing(true), 2000);
+            return;
+          }
+          
+          // If we've exhausted retries or the error is specific, handle accordingly
+          if (verifyError.response && verifyError.response.status === 404) {
+            toast.error('Payment reference not found');
+          } else {
+            toast.error('Failed to verify payment. Please try again later.');
+          }
+          
+          setStatus('failed');
+          return;
+        }
         
-        if (verification.verified) {
+        if (verification && verification.verified) {
           // 2. Create an order with the verified payment
           if (cart && cart.cartItems && cart.cartItems.length > 0) {
             try {
@@ -53,19 +80,49 @@ const PaymentStatus = () => {
                 transactionId: reference
               };
               
-              const response = await post('/checkout/orders', orderData);
-              
-              if (response && response.id) {
-                setOrderId(response.id);
-                setStatus('success');
+              try {
+                const response = await post('/checkout/orders', orderData);
                 
-                // Clear cart after successful order
-                clearCart();
+                // Check if the response has an order - either directly or nested
+                let orderResponse = null;
                 
-                // Clear saved shipping address
-                localStorage.removeItem('checkoutShippingAddress');
-              } else {
-                throw new Error('Failed to create order');
+                if (response && response.id) {
+                  // Direct order response
+                  orderResponse = response;
+                } else if (response && response.order && response.order.id) {
+                  // Nested order response (for existing orders)
+                  orderResponse = response.order;
+                }
+                
+                if (orderResponse) {
+                  setOrderId(orderResponse.id);
+                  setStatus('success');
+                  
+                  // Clear cart after successful order
+                  clearCart();
+                  
+                  // Clear saved shipping address
+                  localStorage.removeItem('checkoutShippingAddress');
+                  
+                  // Show success message
+                  toast.success('Your order has been placed successfully!');
+                } else {
+                  throw new Error('Invalid order response format');
+                }
+              } catch (orderError) {
+                console.error('Error creating order:', orderError);
+                
+                // Special case: If the server returned 201 (Created) but response parsing failed
+                const error = orderError as any; // Type assertion for error object
+                if (error.response && error.response.status === 201) {
+                  setStatus('success');
+                  clearCart();
+                  localStorage.removeItem('checkoutShippingAddress');
+                  toast.success('Your order has been placed successfully!');
+                  return;
+                }
+                
+                throw orderError;
               }
             } catch (error) {
               console.error('Error creating order:', error);
@@ -78,20 +135,25 @@ const PaymentStatus = () => {
             setTimeout(() => navigate('/shop'), 3000);
           }
         } else {
+          toast.error('Payment verification failed. Please try again.');
           setStatus('failed');
         }
       } catch (error) {
-        console.error('Error verifying payment:', error);
-        toast.error('Failed to verify payment. Please try again.');
+        console.error('Error processing payment:', error);
+        toast.error('An error occurred while processing your payment. Please try again later.');
         setStatus('failed');
+      } finally {
+        setIsProcessing(false);
       }
     };
     
-    processPayment();
-  }, [location.search, navigate, cart, clearCart]);
+    if (isProcessing) {
+      processPayment();
+    }
+  }, [location.search, navigate, cart, clearCart, isProcessing, retryCount]);
   
   if (status === 'loading') {
-    return <FullPageLoader message="Processing your payment..." />;
+    return <FullPageLoader message={retryCount > 0 ? `Retrying payment verification (${retryCount}/${MAX_RETRIES})...` : "Processing your payment..."} />;
   }
   
   return (
