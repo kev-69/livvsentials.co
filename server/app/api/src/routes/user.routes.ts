@@ -7,6 +7,7 @@ import { addressRoutes } from '../../../../modules/users/address/address.module'
 import { wishlistRoutes } from '../../../../modules/users/wishlist/wishlist.module';
 import { categoryRoutes } from '../../../../modules/users/categories/category.module';
 import { cartRoutes } from '../../../../modules/users/carts/cart.module';
+import { checkoutRoutes } from '../../../../modules/users/checkout/checkout.module';
 
 const router = Router();
 
@@ -28,6 +29,10 @@ router.use('/categories',
 router.use('/products',
     productRoutes
 );
+
+router.use('/checkout',
+    checkoutRoutes
+)
 
 router.use('/orders',
     orderRoutes
