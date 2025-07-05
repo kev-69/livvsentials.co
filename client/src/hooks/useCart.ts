@@ -63,7 +63,11 @@ export const useCart = () => {
       await fetchCart();
       toast.success('Item added to cart', {
         icon: '🛒',
-        style: { backgroundColor: '#ECFDF5', color: '#065F46' }
+        style: { backgroundColor: '#ECFDF5', color: '#065F46' },
+        action: {
+          label: 'View Cart',
+          onClick: () => openCart()
+        }
       });
     } catch (error) {
       toast.error('Failed to add item to cart', {
