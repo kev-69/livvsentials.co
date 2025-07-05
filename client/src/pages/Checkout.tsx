@@ -8,18 +8,13 @@ import ShippingStep from '../components/checkout/ShippingStep';
 import PaymentStep from '../components/checkout/PaymentStep';
 import ReviewStep from '../components/checkout/ReviewStep';
 import OrderSummary from '../components/checkout/OrderSummary';
+import StepTransition from '../components/checkout/StepTransition';
 import { get, post } from '../lib/api';
-// import type { Cart } from '../types/cart';
 import type { Address } from '../types/user';
 
 // Define the types
 interface PaymentMethod {
-  type: 'CARD' | 'MOBILE_MONEY' | 'CASH_ON_DELIVERY';
-  details: {
-    cardNumber?: string;
-    mobileNumber?: string;
-    provider?: string;
-  };
+  type: 'PAYSTACK';
 }
 
 const Checkout = () => {
@@ -35,6 +30,8 @@ const Checkout = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [transitionMessage, setTransitionMessage] = useState('');
   
   // Fetch saved addresses if user is authenticated
   useEffect(() => {
@@ -45,7 +42,7 @@ const Checkout = () => {
           setSavedAddresses(addresses);
           
           // If user has a default address, select it
-          const defaultAddress = addresses.isDefault;
+          const defaultAddress = addresses.find((addr: any) => addr.isDefault);
           if (defaultAddress) {
             setShippingAddress(defaultAddress);
           }
@@ -67,9 +64,30 @@ const Checkout = () => {
     }
   }, [cart?.cartItems, navigate, orderComplete]);
   
-  // Handle step changes
+  // Handle step changes with transitions
   const goToNextStep = () => {
+    const nextStep = currentStep + 1;
+    
+    // Set the transition message based on which step we're moving to
+    let message = '';
+    if (nextStep === 2) {
+      message = 'Preparing your order review...';
+    } else if (nextStep === 3) {
+      message = 'Setting up payment options...';
+      
+      // Save shipping address to localStorage when moving to payment step
+      if (shippingAddress) {
+        localStorage.setItem('checkoutShippingAddress', JSON.stringify(shippingAddress));
+      }
+    }
+    
+    setTransitionMessage(message);
+    setIsTransitioning(true);
+  };
+  
+  const completeTransition = () => {
     setCurrentStep(prev => Math.min(prev + 1, 3));
+    setIsTransitioning(false);
   };
   
   const goToPreviousStep = () => {
@@ -98,10 +116,59 @@ const Checkout = () => {
     }
   };
   
-  // Handle payment method selection
+  // Check for Paystack callback
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const reference = queryParams.get('reference');
+    const paystackStatus = queryParams.get('status');
+    
+    if (reference && paystackStatus) {
+      // Clear the query parameters
+      window.history.replaceState(null, '', window.location.pathname);
+      
+      if (paystackStatus === 'success') {
+        // Verify the payment with our backend
+        const verifyPayment = async () => {
+          try {
+            setIsLoading(true);
+            const verification = await get(`/checkout/verify-payment/${reference}`);
+            
+            if (verification.verified) {
+              // Set payment method for the order
+              setPaymentMethod({
+                type: 'PAYSTACK',
+              });
+              
+              // Create the order with the payment reference
+              handlePlaceOrder();
+            } else {
+              toast.error('Payment verification failed. Please try again.');
+            }
+          } catch (error) {
+            console.error('Error verifying payment:', error);
+            toast.error('Failed to verify payment');
+          } finally {
+            setIsLoading(false);
+          }
+        };
+        
+        verifyPayment();
+      } else {
+        toast.error('Payment was cancelled or failed');
+      }
+    }
+  }, []);
+
+  // Also update handlePaymentSelect to handle Paystack:
   const handlePaymentSelect = (method: PaymentMethod) => {
     setPaymentMethod(method);
+    
+    // If it's Paystack and we have a reference, proceed to create order
+    if (method.type === 'PAYSTACK') {
+      handlePlaceOrder();
+    }
   };
+  
   
   // Handle order submission
   const handlePlaceOrder = async () => {
@@ -195,6 +262,13 @@ const Checkout = () => {
     <div className="bg-gray-50 py-12">
       <Toaster position="top-center" />
       
+      {/* Step Transition Loader */}
+      <StepTransition 
+        loading={isTransitioning} 
+        onComplete={completeTransition}
+        message={transitionMessage}
+      />
+      
       <div className="container mx-auto px-4">
         <h1 className="text-2xl font-bold text-gray-900 mb-8 text-center">Checkout</h1>
         
@@ -217,25 +291,23 @@ const Checkout = () => {
                 />
               )}
               
-              {/* Step 2: Payment */}
+              {/* Step 2: Review */}
               {currentStep === 2 && (
-                <PaymentStep
-                  selectedPaymentMethod={paymentMethod}
-                  onPaymentSelect={handlePaymentSelect}
+                <ReviewStep
+                  cart={cart}
+                  shippingAddress={shippingAddress}
+                  isLoading={isLoading}
                   onPrevious={goToPreviousStep}
                   onNext={goToNextStep}
                 />
               )}
               
-              {/* Step 3: Review */}
+              {/* Step 3: Payment */}
               {currentStep === 3 && (
-                <ReviewStep
-                  cart={cart}
-                  shippingAddress={shippingAddress}
-                  paymentMethod={paymentMethod}
-                  isLoading={isLoading}
+                <PaymentStep
+                  onPaymentSelect={handlePaymentSelect}
                   onPrevious={goToPreviousStep}
-                  onPlaceOrder={handlePlaceOrder}
+                  onNext={handlePlaceOrder}
                 />
               )}
             </div>
