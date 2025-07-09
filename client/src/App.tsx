@@ -14,6 +14,9 @@ import Checkout from './pages/Checkout';
 import ProductDetails from './pages/ProductDetails';
 import CartDrawer from './components/cart/CartDrawer';
 import PaymentStatus from './components/checkout/PaymentStatus';
+import About from './pages/About';
+import Contact from './pages/Contact';
+import Terms from './pages/Terms';
 
 function App() {
   return (
@@ -34,6 +37,9 @@ function App() {
                   <Route path="/cart" element={<Cart />} />
                   <Route path="/checkout" element={<Checkout />} />
                   <Route path="/checkout/status" element={<PaymentStatus />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/terms" element={<Terms />} />
                 </Routes>
               </main>
               <Footer />
