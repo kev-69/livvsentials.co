@@ -95,8 +95,7 @@ const Home = () => {
             </div>
           </div>
         </div>
-      </section>
-      
+      </section> 
 
       {/* Features Section */}
       <section className="bg-gray-50 py-16 px-4 sm:px-6 lg:px-8">
