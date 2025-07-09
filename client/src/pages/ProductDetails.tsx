@@ -44,7 +44,7 @@ const ProductDetails = () => {
       } finally {
         setTimeout(() => {
           setIsLoading(false);
-        }, 1000);
+        }, 100);
       }
     };
     
