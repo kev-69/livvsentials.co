@@ -22,7 +22,7 @@ const StepTransition: React.FC<StepTransitionProps> = ({
       const timer = setTimeout(() => {
         setShowLoader(false);
         onComplete();
-      }, 1500);
+      }, 1000);
       
       return () => clearTimeout(timer);
     }
