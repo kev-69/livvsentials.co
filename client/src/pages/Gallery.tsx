@@ -28,7 +28,7 @@ const Gallery = () => {
         } finally {
           setTimeout(() => {
             setIsLoading(false);
-          }, 10000);
+          }, 100);
         }
       };
 
@@ -64,10 +64,11 @@ const Gallery = () => {
   const getGridSpanClass = (height: string) => {
     switch (height) {
       case 'tall':
-        return 'row-span-2';
+        return 'row-span-3';
       case 'short':
         return 'row-span-1';
       case 'medium':
+        return 'row-span-2';
       default:
         return 'row-span-3 md:row-span-1';
     }
