@@ -143,7 +143,7 @@ const CartDrawer = () => {
                         
                         <div className="flex items-center justify-between mt-2">
                           <div className="text-primary font-medium">
-                            ${item.price.toFixed(2)}
+                            GHS {item.price.toFixed(2)}
                           </div>
                           
                           {/* Quantity Controls */}
@@ -180,7 +180,7 @@ const CartDrawer = () => {
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Subtotal</span>
-                    <span className="font-medium">${subtotal.toFixed(2)}</span>
+                    <span className="font-medium">GHS {subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Shipping</span>
@@ -188,7 +188,7 @@ const CartDrawer = () => {
                   </div>
                   <div className="border-t pt-2 mt-2 flex justify-between">
                     <span className="font-semibold">Total</span>
-                    <span className="font-semibold">${subtotal.toFixed(2)}</span>
+                    <span className="font-semibold">GHS {subtotal.toFixed(2)}</span>
                   </div>
                 </div>
                 
