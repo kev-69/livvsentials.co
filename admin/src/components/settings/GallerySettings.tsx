@@ -507,7 +507,7 @@ const GallerySettings = ({ settings, onChange, onSave, isSaving }: GallerySettin
               disabled={isLoading}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {isLoading ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
