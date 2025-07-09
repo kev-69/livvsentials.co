@@ -161,7 +161,7 @@ const Cart = () => {
                           {/* Mobile Price */}
                           <div className="flex justify-between items-center mt-2 md:hidden">
                             <div className="text-gray-900 font-medium">
-                              ${item.price.toFixed(2)}
+                              GHS {item.price.toFixed(2)}
                             </div>
                             
                             <button
@@ -180,15 +180,15 @@ const Cart = () => {
                         {item.product.salePrice ? (
                           <div>
                             <span className="text-primary font-medium">
-                              ${item.product.salePrice.toFixed(2)}
+                              GHS {item.product.salePrice.toFixed(2)}
                             </span>
                             <span className="text-gray-400 line-through text-sm ml-2">
-                              ${item.product.price.toFixed(2)}
+                              GHS {item.product.price.toFixed(2)}
                             </span>
                           </div>
                         ) : (
                           <span className="text-gray-900 font-medium">
-                            ${item.price.toFixed(2)}
+                            GHS {item.price.toFixed(2)}
                           </span>
                         )}
                       </div>
@@ -232,7 +232,7 @@ const Cart = () => {
                       {/* Total & Remove - Desktop */}
                       <div className="hidden md:flex md:w-1/5 justify-end items-center">
                         <span className="text-gray-900 font-medium">
-                          ${item.total.toFixed(2)}
+                          GHS {item.total.toFixed(2)}
                         </span>
                         <button
                           onClick={() => removeFromCart(item.productId)}
@@ -310,13 +310,13 @@ const Cart = () => {
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Subtotal ({totalItems} items)</span>
-                      <span className="font-medium">${subtotal.toFixed(2)}</span>
+                      <span className="font-medium">GHS {subtotal.toFixed(2)}</span>
                     </div>
                     
                     {discount > 0 && (
                       <div className="flex justify-between text-green-600">
                         <span>Discount (WELCOME10)</span>
-                        <span>-${discount.toFixed(2)}</span>
+                        <span>-GHS {discount.toFixed(2)}</span>
                       </div>
                     )}
                     
@@ -327,7 +327,7 @@ const Cart = () => {
                     
                     <div className="border-t pt-3 mt-3 flex justify-between text-base font-semibold">
                       <span>Total</span>
-                      <span>${total.toFixed(2)}</span>
+                      <span>GHS {total.toFixed(2)}</span>
                     </div>
                   </div>
                   
@@ -355,7 +355,7 @@ const Cart = () => {
                       <Truck className="h-5 w-5 text-gray-400 mt-0.5 mr-2 flex-shrink-0" />
                       <div>
                         <p className="text-sm font-medium text-gray-900">
-                          Free shipping on orders over $50
+                          Free shipping on orders over GHS 500
                         </p>
                         <p className="text-sm text-gray-600 mt-1">
                           Estimated delivery: {formattedDeliveryDate}
