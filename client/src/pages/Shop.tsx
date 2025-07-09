@@ -70,7 +70,7 @@ const Shop = () => {
       } finally {
         setTimeout(() => {
           setIsLoading(false);
-        }, 1000); // Simulate loading delay
+        }, 100); // Simulate loading delay
       }
     };
     
